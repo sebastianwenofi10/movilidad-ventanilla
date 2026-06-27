@@ -314,9 +314,18 @@
             },
 
             goToTarde: function() {
-    // Esto crea la "llave" de acceso en el navegador del alumno
-    sessionStorage.setItem('valid_session', 'true');
-    window.location.href = "tardeunac.html";
+    if (tardeActivo) {
+        // Creamos una firma de acceso que dura solo 5 minutos
+        const firma = {
+            auth: true,
+            timestamp: new Date().getTime(),
+            token: "UNAC-VENTANILLA-SECURE-KEY"
+        };
+        sessionStorage.setItem('access_token_tarde', JSON.stringify(firma));
+        window.location.href = "tardeunac12.html";
+    } else {
+        Swal.fire('Turno Inactivo', 'El delegado aún no ha habilitado este turno.', 'warning');
+    }
 },
 
             requestTicket: async function(turno) {
