@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>UNAC | Panel de Control Delegados</title>
+    <title>UNAC | Panel Control Oficial</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=Montserrat:wght@800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
 
     <!-- LIBRERÍAS FIREBASE COMPAT -->
@@ -14,113 +14,119 @@
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
 
     <style>
-        :root { --accent: #ffc107; --dark: #050505; }
-        body { background-color: var(--dark); font-family: 'Inter', sans-serif; color: white; margin: 0; min-height: 100vh; display: flex; flex-direction: column; align-items: center; }
+        :root { --accent: #ffc107; --dark: #050505; --red-bg: #ef4444; --green-bg: #10b981; }
+        body { background-color: var(--dark); font-family: 'Inter', sans-serif; color: white; margin: 0; min-height: 100vh; }
         .glass { background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.08); backdrop-filter: blur(15px); border-radius: 20px; }
         input { width: 100%; background: rgba(0,0,0,0.5) !important; border: 1px solid rgba(255,193,7,0.3) !important; color: white !important; padding: 15px; border-radius: 10px; margin-bottom: 15px; outline: none; text-align: center; }
-        input:focus { border-color: var(--accent) !important; }
         .btn-gold { background: var(--accent); color: black; width: 100%; padding: 15px; border-radius: 10px; font-weight: 900; text-transform: uppercase; transition: 0.3s; cursor: pointer; }
-        .btn-gold:hover { transform: scale(1.02); background: white; }
         #reader { width: 100% !important; border: none !important; border-radius: 15px; overflow: hidden; }
-        .hidden { display: none !important; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        .animate-fade-in { animation: fadeIn 0.4s ease-out forwards; }
-        #flash-notif { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 9999; background: #10b981; color: white; padding: 25px 50px; border-radius: 20px; font-weight: 900; text-align: center; box-shadow: 0 0 50px rgba(16, 185, 129, 0.6); display: none; border: 2px solid white; pointer-events: none; }
-        .notif-error { background: #ef4444 !important; box-shadow: 0 0 50px rgba(239, 68, 68, 0.6) !important; }
-        .btn-horario { background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); color: #555; padding: 15px 5px; border-radius: 12px; font-weight: 900; text-transform: uppercase; font-size: 10px; transition: 0.3s; cursor: pointer; }
-        .active-6pm { background: #0284c7 !important; color: white !important; border-color: #38bdf8 !important; box-shadow: 0 0 15px rgba(2, 132, 199, 0.4); }
-        .active-10pm { background: #7c3aed !important; color: white !important; border-color: #a78bfa !important; box-shadow: 0 0 15px rgba(124, 58, 237, 0.4); }
+        
+        #flash-notif { 
+            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); 
+            z-index: 9999; padding: 40px 60px; border-radius: 30px; font-weight: 900; 
+            text-align: center; display: none; border: 4px solid white; box-shadow: 0 0 100px rgba(0,0,0,0.8);
+            width: 90%; max-width: 400px;
+        }
+        .notif-success { background: var(--green-bg); }
+        .notif-error { background: var(--red-bg); }
+
+        .btn-horario { background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); color: #666; padding: 15px 5px; border-radius: 12px; font-weight: 900; text-transform: uppercase; font-size: 10px; transition: 0.3s; cursor: pointer; }
+        .active-6pm { background: #0284c7 !important; color: white !important; border-color: #38bdf8 !important; }
+        .active-10pm { background: #7c3aed !important; color: white !important; border-color: #a78bfa !important; }
+
+        /* VISTA DE LISTA PANTALLA COMPLETA */
+        #master-list-view { position: fixed; inset: 0; background: #050505; z-index: 1000; display: none; flex-direction: column; }
+        .student-card { border-left: 5px solid transparent; }
+        .status-red { border-color: #ef4444; background: rgba(239, 68, 68, 0.1); }
+        .status-green { border-color: #10b981; background: rgba(16, 185, 129, 0.1); }
     </style>
 </head>
-<body>
+<body oncontextmenu="return false;">
 
+    <!-- NOTIFICACIÓN DE ESCANEO GIGANTE -->
     <div id="flash-notif">
-        <i id="flash-icon" class="fa-solid fa-circle-check text-5xl mb-2"></i><br>
-        <span id="flash-text" class="text-2xl uppercase italic tracking-tighter">Escaneo Verificado</span>
+        <i id="flash-icon" class="fa-solid fa-circle-check text-7xl mb-4"></i><br>
+        <span id="flash-text" class="text-3xl uppercase italic tracking-tighter">--</span>
+        <p id="flash-subtext" class="text-sm mt-2 font-bold opacity-80 uppercase tracking-widest"></p>
     </div>
 
-    <header class="w-full max-w-lg p-6 flex justify-between items-center z-20">
-        <div class="flex items-center gap-3">
-            <div class="w-9 h-9 bg-yellow-500 rounded flex items-center justify-center shadow-lg"><i class="fa-solid fa-user-shield text-black text-lg"></i></div>
-            <div class="flex flex-col text-left leading-none uppercase">
-                <span class="text-[10px] font-black tracking-widest leading-none">UNAC</span>
-                <span class="text-[9px] text-yellow-500 font-bold">Delegados</span>
-            </div>
-        </div>
-        <button onclick="window.close()" class="text-[10px] font-black text-gray-500 uppercase tracking-widest hover:text-red-500 transition">Cerrar Panel <i class="fa-solid fa-xmark ml-1"></i></button>
-    </header>
-
-    <!-- LOGIN -->
-    <div id="login-container" class="w-full max-w-sm px-6 mt-10 text-center animate-fade-in">
-        <div class="mb-8">
-            <h1 class="text-3xl font-black uppercase italic tracking-tighter">Acceso <span class="text-yellow-500">Restringido</span></h1>
-            <p class="text-gray-500 text-[10px] tracking-widest uppercase mt-2">Ingrese sus credenciales de delegado</p>
-        </div>
-        <div class="glass p-8">
-            <div class="text-left mb-4">
-                <label class="text-[9px] font-black text-yellow-500 uppercase tracking-widest ml-1">Documento DNI</label>
-                <input type="text" id="userDni" placeholder="7XXXXXXX" maxlength="8">
-                <label class="text-[9px] font-black text-yellow-500 uppercase tracking-widest ml-1">Contraseña</label>
-                <input type="password" id="userPass" placeholder="••••••••">
-            </div>
-            <button onclick="intentarLogin()" class="btn-gold shadow-lg shadow-yellow-500/20">Entrar al Sistema</button>
-            <p id="errorLogin" class="text-red-500 text-[10px] font-bold mt-4 hidden uppercase tracking-widest">Credenciales incorrectas</p>
-        </div>
-    </div>
-
-    <!-- SCANNER PANEL -->
-    <div id="scanner-container" class="w-full max-w-lg px-4 py-4 hidden animate-fade-in">
-        <div class="flex justify-between items-center mb-6 px-2">
+    <!-- PESTAÑA DE LISTA MAESTRA -->
+    <div id="master-list-view">
+        <header class="p-6 border-b border-white/10 flex justify-between items-center bg-black">
             <div>
-                <h2 class="text-xl font-black italic uppercase">Panel de <span class="text-yellow-500">Control</span></h2>
-                <p id="delegadoNombre" class="text-gray-500 text-[9px] uppercase font-bold tracking-widest"></p>
+                <h3 class="text-xl font-black text-yellow-500 uppercase italic">Lista de Abordaje</h3>
+                <p id="list-date" class="text-[9px] text-gray-500 uppercase tracking-widest"></p>
             </div>
-            <button onclick="location.reload()" class="bg-white/5 border border-white/10 text-[9px] px-3 py-1.5 rounded-lg font-black uppercase text-gray-400 hover:text-white transition">Regresar</button>
+            <button onclick="toggleLista(false)" class="bg-white/10 w-12 h-12 rounded-full flex items-center justify-center text-white text-2xl hover:bg-red-600 transition">&times;</button>
+        </header>
+        <div id="contenedor-lista-maestra" class="flex-grow overflow-y-auto p-4 space-y-3">
+            <p class="text-center text-gray-600 py-10">Cargando datos...</p>
         </div>
+    </div>
 
-        <div class="glass p-4 mb-6">
-            <div id="reader"></div>
-        </div>
-
-        <!-- CONTADORES -->
-        <div class="grid grid-cols-3 gap-2 mb-4 text-center">
-            <div class="glass p-3 border-b-2 border-yellow-500">
-                <span class="text-[7px] text-gray-500 uppercase font-black block mb-1">Mis Escaneos</span>
-                <span id="contador-personal" class="text-2xl font-black text-yellow-500">0</span>
+    <!-- APP PRINCIPAL -->
+    <div id="main-app" class="flex flex-col items-center w-full">
+        <header class="w-full max-w-lg p-6 flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <div class="w-9 h-9 bg-yellow-500 rounded flex items-center justify-center shadow-lg"><i class="fa-solid fa-user-shield text-black text-lg"></i></div>
+                <div class="flex flex-col text-left leading-none uppercase">
+                    <span class="text-[10px] font-black tracking-widest">UNAC</span>
+                    <span class="text-[9px] text-yellow-500 font-bold">Delegados</span>
+                </div>
             </div>
-            <div class="glass p-3 border-b-2 border-orange-500">
-                <span class="text-[7px] text-gray-500 uppercase font-black block mb-1">Solicitados</span>
-                <span id="contador-solicitados" class="text-2xl font-black text-orange-500">0</span>
-            </div>
-            <div class="glass p-3 border-b-2 border-blue-500 relative">
-                <span class="text-[7px] text-gray-500 uppercase font-black block mb-1">Total Global</span>
-                <span id="contador-global" class="text-2xl font-black text-blue-500">0</span>
-            </div>
-        </div>
+            <button onclick="location.reload()" class="text-[10px] font-black text-gray-500 uppercase">Salir <i class="fa-solid fa-xmark"></i></button>
+        </header>
 
-        <div class="glass p-3 border-b-2 border-green-500 text-center mb-6">
-            <span id="scan-status" class="text-[10px] font-black text-green-500 uppercase">Lector Preparado</span>
-        </div>
-
-        <!-- LISTA DE ESTUDIANTES (LO QUE PEDISTE: ROJO/VERDE) -->
-        <div class="glass p-6 mb-6">
-            <h3 class="text-[10px] font-black uppercase text-gray-400 mb-4 border-b border-white/10 pb-2 flex justify-between">
-                <span>Lista de Pasajeros (Hoy)</span>
-                <span class="text-yellow-500">Sincronizado</span>
-            </h3>
-            <div id="listaPasajeros" class="space-y-3 max-h-64 overflow-y-auto pr-2">
-                <!-- Dinámico -->
+        <!-- LOGIN (TU DISEÑO ORIGINAL) -->
+        <div id="login-container" class="w-full max-w-sm px-6 mt-10 text-center">
+            <div class="mb-8">
+                <h1 class="text-3xl font-black uppercase italic tracking-tighter">Acceso <span class="text-yellow-500">Privado</span></h1>
+                <p class="text-gray-500 text-[10px] tracking-widest uppercase mt-2">Seguridad Ruta Ventanilla</p>
+            </div>
+            <div class="glass p-8 text-left">
+                <label class="text-[9px] font-black text-yellow-500 uppercase tracking-widest">Documento DNI</label>
+                <input type="text" id="userDni" placeholder="7XXXXXXX">
+                <label class="text-[9px] font-black text-yellow-500 uppercase tracking-widest">Contraseña</label>
+                <input type="password" id="userPass" placeholder="••••••••">
+                <button onclick="intentarLogin()" class="btn-gold mt-4">Entrar al Sistema</button>
             </div>
         </div>
 
-        <div class="grid grid-cols-2 gap-3 mb-3">
-            <button id="btn-6pm" onclick="toggleHorario('tarde')" class="btn-horario">Ticket 6:00 PM</button>
-            <button id="btn-1015pm" onclick="toggleHorario('noche')" class="btn-horario">Ticket 10:15 PM</button>
-        </div>
+        <!-- PANEL SCANNER -->
+        <div id="scanner-container" class="w-full max-w-lg px-4 py-4 hidden">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-xl font-black uppercase">Panel <span class="text-yellow-500">Control</span></h2>
+                <button onclick="toggleLista(true)" class="bg-yellow-500 text-black text-[10px] font-black px-4 py-2 rounded-lg uppercase">
+                    <i class="fa-solid fa-users mr-1"></i> Ver Lista
+                </button>
+            </div>
 
-        <div class="grid grid-cols-2 gap-3 mb-10">
-            <button onclick="limpiarHistorial()" class="w-full bg-orange-600 text-white font-black py-4 rounded-xl uppercase text-[10px]">Borrar Historial</button>
-            <button id="btn-reiniciar" onclick="enviarYReiniciar()" class="w-full bg-red-600 text-white font-black py-4 rounded-xl uppercase text-[10px]">Reiniciar Sistema</button>
+            <div class="glass p-4 mb-6"><div id="reader"></div></div>
+
+            <div class="grid grid-cols-3 gap-2 mb-6 text-center">
+                <div class="glass p-3 border-b-2 border-yellow-500">
+                    <span class="text-[7px] text-gray-500 uppercase font-black block">Mis Escaneos</span>
+                    <span id="contador-mi" class="text-2xl font-black text-yellow-500">0</span>
+                </div>
+                <div class="glass p-3 border-b-2 border-orange-500">
+                    <span class="text-[7px] text-gray-500 uppercase font-black block">Solicitados</span>
+                    <span id="contador-sol" class="text-2xl font-black text-orange-500">0</span>
+                </div>
+                <div class="glass p-3 border-b-2 border-blue-500">
+                    <span class="text-[7px] text-gray-500 uppercase font-black block">Total Global</span>
+                    <span id="contador-glo" class="text-2xl font-black text-blue-500">0</span>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3 mb-6">
+                <button id="btn-tarde" onclick="toggleTurno('tarde')" class="btn-horario">Ticket 6:00 PM</button>
+                <button id="btn-noche" onclick="toggleTurno('noche')" class="btn-horario">Ticket 10:15 PM</button>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3 mb-10">
+                <button onclick="localStorage.clear(); location.reload();" class="w-full bg-orange-600 text-white font-black py-4 rounded-xl uppercase text-[10px]">Borrar Historial</button>
+                <button onclick="reiniciarFirebase()" class="w-full bg-red-600 text-white font-black py-4 rounded-xl uppercase text-[10px]">Reiniciar Sistema</button>
+            </div>
         </div>
     </div>
 
@@ -143,15 +149,15 @@
         let delegadoActivo = "";
         const DELEGADOS = ["71886034", "77570731", "63229248", "73438294", "70694926"];
 
-        // 1. ESCUCHAR CONFIGURACIÓN DE BOTONES
+        // 1. Sincronizar Botones
         db.ref('sistema/config').on('value', snap => {
             const data = snap.val() || {};
-            document.getElementById('btn-6pm').className = data.tarde_activo ? 'btn-horario active-6pm' : 'btn-horario';
-            document.getElementById('btn-1015pm').className = data.noche_activo ? 'btn-horario active-10pm' : 'btn-horario';
+            document.getElementById('btn-tarde').className = data.tarde_activo ? 'btn-horario active-6pm' : 'btn-horario';
+            document.getElementById('btn-noche').className = data.noche_activo ? 'btn-horario active-10pm' : 'btn-horario';
         });
 
-        function toggleHorario(turno) {
-            const ref = db.ref(`sistema/config/${turno}_activo`);
+        function toggleTurno(t) {
+            const ref = db.ref(`sistema/config/${t}_activo`);
             ref.once('value', s => ref.set(!s.val()));
         }
 
@@ -159,104 +165,116 @@
             const dni = document.getElementById('userDni').value;
             if (DELEGADOS.includes(dni) && dni === document.getElementById('userPass').value) {
                 delegadoActivo = dni;
-                document.getElementById('login-container').classList.add('hidden');
+                document.getElementById('login-container').style.display = 'none';
                 document.getElementById('scanner-container').classList.remove('hidden');
-                document.getElementById('delegadoNombre').innerText = "ID DELEGADO: " + dni;
+                document.getElementById('list-date').innerText = "Hoy: " + new Date().toLocaleDateString();
                 iniciarSistema();
-            } else {
-                document.getElementById('errorLogin').classList.remove('hidden');
-            }
+            } else { alert("Error de credenciales"); }
         }
 
         function iniciarSistema() {
             const fecha = new Date().toISOString().split('T')[0];
-            
-            // 2. SINCRONIZACIÓN DE LISTA (ROJO/VERDE)
-            db.ref('sistema').on('value', snap => {
+            const scanner = new Html5QrcodeScanner("reader", { fps: 20, qrbox: 250 });
+            scanner.render(onScanSuccess);
+
+            // Escuchar cambios para la Lista y Contadores
+            db.ref('sistema').on('value', async (snap) => {
                 const data = snap.val() || {};
                 const viajes = data.viajes ? data.viajes[fecha] : {};
                 const asistencias = (data.asistencias && data.asistencias[fecha]) ? data.asistencias[fecha] : {};
                 
-                let ticketsEmitidos = {};
-                if(viajes.mañana) Object.assign(ticketsEmitidos, viajes.mañana.registros);
-                if(viajes.tarde) Object.assign(ticketsEmitidos, viajes.tarde.registros);
-                if(viajes.noche) Object.assign(ticketsEmitidos, viajes.noche.registros);
+                let combinedTickets = {};
+                if(viajes.mañana) Object.assign(combinedTickets, viajes.mañana.registros);
+                if(viajes.tarde) Object.assign(combinedTickets, viajes.tarde.registros);
+                if(viajes.noche) Object.assign(combinedTickets, viajes.noche.registros);
 
-                const listContainer = document.getElementById('listaPasajeros');
-                const dnis = Object.keys(ticketsEmitidos);
+                document.getElementById('contador-sol').innerText = Object.keys(combinedTickets).length;
+                document.getElementById('contador-glo').innerText = Object.keys(asistencias).length;
+                document.getElementById('contador-mi').innerText = Object.values(asistencias).filter(a => a.delegado === delegadoActivo).length;
 
-                if(dnis.length === 0) {
-                    listContainer.innerHTML = "<p class='text-center text-gray-600 text-[10px] py-6'>No hay tickets hoy.</p>";
-                } else {
-                    listContainer.innerHTML = dnis.map(dni => {
-                        const verificado = asistencias[dni] ? true : false;
-                        return `
-                            <div class="p-3 rounded-lg border-l-4 ${verificado ? 'bg-green-500/10 border-green-500' : 'bg-red-500/10 border-red-500'} flex justify-between items-center">
-                                <span class="text-[10px] font-black uppercase text-white">${ticketsEmitidos[dni].nombre}</span>
-                                <span class="text-[8px] font-bold ${verificado ? 'text-green-500' : 'text-red-500'}">${verificado ? 'ESCANEADO' : 'PENDIENTE'}</span>
-                            </div>
-                        `;
-                    }).reverse().join('');
-                }
-
-                // Actualizar Contadores
-                document.getElementById('contador-solicitados').innerText = dnis.length;
-                document.getElementById('contador-global').innerText = Object.keys(asistencias).length;
-                document.getElementById('contador-personal').innerText = Object.values(asistencias).filter(a => a.delegado === delegadoActivo).length;
+                renderMasterList(combinedTickets, asistencias);
             });
-
-            const scanner = new Html5QrcodeScanner("reader", { fps: 20, qrbox: 250 });
-            scanner.render(onScanSuccess);
         }
 
+        async function renderMasterList(tickets, asistencias) {
+            const container = document.getElementById('contenedor-lista-maestra');
+            const dnis = Object.keys(tickets);
+            if(dnis.length === 0) { container.innerHTML = "<p class='text-center py-10'>No hay tickets hoy.</p>"; return; }
+
+            const alumnosSnap = await db.ref('alumnos').once('value');
+            const baseAlumnos = alumnosSnap.val() || {};
+
+            container.innerHTML = dnis.map(dni => {
+                const verificado = asistencias[dni] ? true : false;
+                const infoAlu = baseAlumnos[dni] || { Facultad: 'UNAC', Horario: 'Pendiente' };
+                return `
+                    <div class="p-4 rounded-xl student-card ${verificado ? 'status-green' : 'status-red'} flex justify-between items-center">
+                        <div>
+                            <p class="text-[11px] font-black uppercase text-white">${tickets[dni].nombre}</p>
+                            <p class="text-[9px] text-gray-500 uppercase">${infoAlu.Facultad} | ${infoAlu.Horario}</p>
+                        </div>
+                        <span class="text-[10px] font-black ${verificado ? 'text-green-500' : 'text-red-500'}">
+                            ${verificado ? 'LISTO' : 'ESPERA'}
+                        </span>
+                    </div>
+                `;
+            }).reverse().join('');
+        }
+
+        // LÓGICA DE ESCANEO CON VALIDACIONES DE FECHA Y DUPLICADOS
         async function onScanSuccess(text) {
-            const parts = text.split('-'); // Formato: UNAC-SECURE-DNI-T-ORDEN
-            if(parts.length < 4) return notificarFlash("QR NO VÁLIDO", false);
+            // Formato esperado Code 3: UNAC-SECURE-DNI-T-ORDEN-FECHA
+            // Si tu Code 3 no envía fecha, usaremos la validación contra el nodo actual.
+            const parts = text.split('-'); 
+            if(parts.length < 4) return notificarFlash("QR INVÁLIDO", "error", "Formato no reconocido");
 
-            const dni = parts[2], turnoKey = parts[3].toLowerCase() === 't' ? 'tarde' : (parts[3].toLowerCase() === 'n' ? 'noche' : 'mañana');
-            const fecha = new Date().toISOString().split('T')[0];
+            const dniScanned = parts[2];
+            const fechaHoy = new Date().toISOString().split('T')[0];
+            const turnoScanned = parts[3].toLowerCase() === 't' ? 'tarde' : 'noche';
 
-            db.ref(`sistema/viajes/${fecha}/${turnoKey}/registros/${dni}`).once('value', snap => {
-                if(snap.exists()){
-                    db.ref(`sistema/asistencias/${fecha}/${dni}`).set({
-                        nombre: snap.val().nombre, hora: new Date().toLocaleTimeString(), delegado: delegadoActivo
-                    });
-                    notificarFlash("VERIFICADO ✅", true);
-                    soundOk.play();
-                } else {
-                    notificarFlash("TICKET NO EMITIDO", false);
-                    soundError.play();
-                }
-            });
-        }
-
-        function notificarFlash(text, exito) {
-            const flash = document.getElementById('flash-notif');
-            document.getElementById('flash-text').innerText = text;
-            flash.className = exito ? "" : "notif-error";
-            flash.style.display = 'block';
-            setTimeout(() => flash.style.display = 'none', 1500);
-        }
-
-        // 3. FUNCIONES DE REINICIO REALES (LIMPIAN FIREBASE)
-        async function enviarYReiniciar() {
-            if (confirm("⚠️ ¿REINICIAR SISTEMA? Se borrarán todos los tickets y asistencias de HOY en la base de datos.")) {
-                const fecha = new Date().toISOString().split('T')[0];
-                try {
-                    await Promise.all([
-                        db.ref(`sistema/viajes/${fecha}`).remove(),
-                        db.ref(`sistema/asistencias/${fecha}`).remove(),
-                        db.ref('sistema/config').set({ tarde_activo: false, noche_activo: false })
-                    ]);
-                    alert("Base de datos limpia. Sistema reiniciado.");
-                    location.reload();
-                } catch(e) { alert("Error al conectar con Firebase."); }
+            // 1. Validar si ya fue escaneado hoy (DUPLICADO)
+            const snapAsis = await db.ref(`sistema/asistencias/${fechaHoy}/${dniScanned}`).once('value');
+            if(snapAsis.exists()){
+                soundError.play();
+                return notificarFlash("YA ESCANEADO", "error", "Este alumno ya subió al bus");
             }
+
+            // 2. Validar si tiene ticket para HOY
+            const snapTicket = await db.ref(`sistema/viajes/${fechaHoy}/${turnoScanned}/registros/${dniScanned}`).once('value');
+            if(!snapTicket.exists()){
+                soundError.play();
+                return notificarFlash("TICKET CADUCADO", "error", "El ticket no es de hoy o no existe");
+            }
+
+            // 3. TODO CORRECTO -> Registrar Asistencia
+            db.ref(`sistema/asistencias/${fechaHoy}/${dniScanned}`).set({
+                nombre: snapTicket.val().nombre,
+                hora: new Date().toLocaleTimeString(),
+                delegado: delegadoActivo
+            });
+            soundOk.play();
+            notificarFlash("VERIFICADO ✅", "success", snapTicket.val().nombre);
         }
 
-        function limpiarHistorial() {
-            if(confirm("¿Borrar historial del navegador?")) {
-                localStorage.clear();
+        function toggleLista(show) { document.getElementById('master-list-view').style.display = show ? 'flex' : 'none'; }
+
+        function notificarFlash(titulo, tipo, subtexto) {
+            const f = document.getElementById('flash-notif'), t = document.getElementById('flash-text'), st = document.getElementById('flash-subtext'), i = document.getElementById('flash-icon');
+            t.innerText = titulo; st.innerText = subtexto;
+            f.className = tipo === "success" ? "notif-success" : "notif-error";
+            i.className = tipo === "success" ? "fa-solid fa-circle-check text-7xl mb-4" : "fa-solid fa-circle-xmark text-7xl mb-4";
+            f.style.display = 'block';
+            setTimeout(() => f.style.display = 'none', 2000);
+        }
+
+        async function reiniciarFirebase() {
+            if(confirm("¿BORRAR TODO?")) {
+                const fecha = new Date().toISOString().split('T')[0];
+                await Promise.all([
+                    db.ref(`sistema/viajes/${fecha}`).remove(),
+                    db.ref(`sistema/asistencias/${fecha}`).remove(),
+                    db.ref('sistema/config').set({ tarde_activo: false, noche_activo: false })
+                ]);
                 location.reload();
             }
         }
