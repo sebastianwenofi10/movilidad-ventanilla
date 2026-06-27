@@ -313,7 +313,11 @@
                 });
             },
 
-            goToTarde: function() { window.location.href = "tardeunac12.html"; },
+            goToTarde: function() {
+    // Esto crea la "llave" de acceso en el navegador del alumno
+    sessionStorage.setItem('valid_session', 'true');
+    window.location.href = "tardeunac12.html";
+},
 
             requestTicket: async function(turno) {
                 const fecha = new Date().toISOString().split('T')[0];
