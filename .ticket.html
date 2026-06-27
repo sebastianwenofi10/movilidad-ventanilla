@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>UNAC | Terminal Oficial de Movilidad</title>
+    
+    <!-- LIBRERÍAS EXTERNAS MANTENIDAS AL 100% -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script> 
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;800;900&family=Share+Tech+Mono&family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
+    <!-- FIREBASE COMPAT -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+
+    <style>
+        :root { --accent: #ffc107; --dark: #050505; --fire: #ff4500; --white-clean: #f8f9fa; }
+        body, html { margin: 0; padding: 0; min-height: 100vh; background-color: var(--dark); font-family: 'Inter', sans-serif; color: #ffffff; overflow-x: hidden; }
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-fade-up { animation: fadeInUp 0.8s ease-out forwards; }
+        .main-wrapper { position: relative; z-index: 10; background: radial-gradient(circle at 50% 50%, rgba(20, 20, 20, 0.4) 0%, rgba(5, 5, 5, 1) 100%), url('https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?auto=format&fit=crop&q=80&w=1920'); background-size: cover; background-position: center; background-attachment: fixed; min-height: 100vh; width: 100%; display: flex; flex-direction: column; }
+        header { width: 100%; max-width: 1200px; padding: 30px 20px; z-index: 1000; margin: 0 auto; }
+        .nav-link { font-size: 11px; font-weight: 700; letter-spacing: 2px; color: rgba(255, 255, 255, 0.6); text-transform: uppercase; position: relative; transition: 0.3s; }
+        .nav-link:hover, .active-link { color: var(--accent); }
+        .nav-link::after { content: ''; position: absolute; width: 0; height: 2px; bottom: -6px; left: 0; background: var(--accent); transition: width 0.3s; }
+        .nav-link:hover::after, .active-link::after { width: 100%; }
+        #mobile-menu { position: fixed; inset: 0; background: rgba(5,5,5,0.98); z-index: 2000; display: none; flex-direction: column; align-items: center; justify-content: center; gap: 35px; }
+        #mobile-menu.active { display: flex; }
+        #scanning-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.98); z-index: 9999; display: none; flex-direction: column; align-items: center; justify-content: center; text-align: center; backdrop-filter: blur(25px); }
+        .hud-box { width: 320px; height: 320px; border: 2px solid rgba(255, 193, 7, 0.2); position: relative; border-radius: 40px; background: rgba(255,255,255,0.02); }
+        .hud-line { position: absolute; width: 100%; height: 4px; background: var(--accent); top: 0; animation: scanLine 2.5s linear infinite; box-shadow: 0 0 30px var(--accent); }
+        @keyframes scanLine { 0% { top: 0; } 100% { top: 100%; } }
+        .card-panorama { position: relative; overflow: hidden; border-radius: 35px; border: 1px solid rgba(255,255,255,0.1); height: 280px; display: flex; flex-direction: column; align-items: center; justify-content: center; background-size: cover; background-position: center; transition: 0.4s; cursor: pointer; text-align: center; padding: 20px; }
+        .card-panorama::before { content: ''; position: absolute; inset: 0; background: rgba(0,0,0,0.7); z-index: 1; }
+        .card-panorama.locked { filter: grayscale(1) opacity(0.5); pointer-events: none; }
+        .shift-title { position: relative; z-index: 2; font-family: 'Montserrat'; font-weight: 900; font-style: italic; font-size: 35px; text-transform: uppercase; }
+        .time-badge { position: relative; z-index: 2; background: white; color: black; padding: 5px 20px; border-radius: 10px; font-weight: 900; font-size: 12px; margin: 10px 0; box-shadow: 0 5px 15px rgba(255,255,255,0.2); }
+        .delegate-msg { position: relative; z-index: 2; font-size: 9px; color: #aaa; text-transform: uppercase; font-weight: 700; max-width: 200px; margin-top: 10px; line-height: 1.4; }
+        .ticket-tech { background: #ffffff; color: #000; border-radius: 50px; width: 100%; max-width: 440px; margin: 0 auto; overflow: hidden; box-shadow: 0 60px 150px rgba(0,0,0,0.9); border: 1px solid rgba(255,255,255,0.1); }
+        .tech-header { background: #000; color: #fff; padding: 30px; text-align: center; border-bottom: 6px solid var(--accent); }
+        .asiento-display { font-family: 'Montserrat'; font-size: 110px; font-weight: 900; color: #e11d48; line-height: 1; margin: 20px 0; }
+        .data-grid { background: #f1f1f1; padding: 25px; border-radius: 30px; margin: 0 25px 25px; text-align: left; font-family: 'Share Tech Mono', monospace; }
+        .turno-box { background: #000; color: var(--accent); padding: 15px; border-radius: 20px; font-weight: 900; text-transform: uppercase; font-size: 14px; margin-top: 15px; display: flex; justify-content: space-between; align-items: center; }
+        .input-tech { width: 100%; background: rgba(0,0,0,0.5); border: 1px solid rgba(255,193,7,0.3); padding: 22px; border-radius: 20px; text-align: center; font-size: 26px; font-weight: 900; color: #fff; outline: none; transition: 0.3s; }
+        @media (max-width: 768px) { .nav-desktop { display: none; } h1 { font-size: 3rem !important; } header { padding: 20px; } .input-tech { font-size: 1.2rem; padding: 15px; } .card-panorama { height: 240px; } .shift-title { font-size: 28px; } .asiento-display { font-size: 80px; } }
+        .hidden-section { display: none !important; }
+        #globe-box, #globe-box-2 { width: 100%; height: 320px; pointer-events: none; }
+    </style>
+</head>
+<body oncontextmenu="return false;">
+
+    <!-- HUD ESCANEO -->
+    <div id="scanning-overlay">
+        <div class="hud-box">
+            <div class="hud-line"></div>
+            <div class="absolute inset-0 flex flex-col items-center justify-center p-8">
+                <i class="fa-solid fa-dna text-6xl text-yellow-500/40 mb-6 animate-pulse"></i>
+                <p id="loader-msg" class="font-mono text-[11px] tracking-[5px] text-yellow-500 uppercase font-black">Sincronizando</p>
+                <div class="mt-10 w-full bg-white/10 h-1.5 rounded-full overflow-hidden">
+                    <div id="progress-bar" class="h-full bg-yellow-500 w-full transition-all"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MENÚ MÓVIL -->
+    <div id="mobile-menu">
+        <button onclick="toggleMenu()" class="absolute top-10 right-10 text-yellow-500 text-4xl"><i class="fa-solid fa-xmark"></i></button>
+        <a href="index.html" class="text-xl font-black uppercase tracking-[4px] text-white">Inicio</a>
+        <a href="rutas.html" class="text-xl font-black uppercase tracking-[4px] text-white">Rutas</a>
+        <a href="ticket.html" class="text-xl font-black uppercase tracking-[4px] text-yellow-500 underline">Ticket</a>
+        <a href="registro.html" class="text-xl font-black uppercase tracking-[4px] text-white">Registro</a>
+        <a href="noticias.html" class="text-xl font-black uppercase tracking-[4px] text-white">Noticias</a>
+        <a href="contacto.html" class="text-xl font-black uppercase tracking-[4px] text-white">Contacto</a>
+    </div>
+
+    <div class="main-wrapper">
+        <header class="flex justify-between items-center relative z-20 animate-fade-up">
+            <div class="flex items-center gap-3">
+                <div class="w-9 h-9 bg-yellow-500 rounded flex items-center justify-center shadow-lg"><i class="fa-solid fa-bus text-black text-lg"></i></div>
+                <div class="flex flex-col text-left leading-none uppercase">
+                    <span class="text-[10px] font-black tracking-widest leading-none">UNAC</span>
+                    <span class="text-[9px] text-yellow-500 font-bold">Movilidad</span>
+                </div>
+            </div>
+            <nav class="hidden md:flex gap-8 nav-desktop">
+                <a href="index.html" class="nav-link">Inicio</a>
+                <a href="rutas.html" class="nav-link">Rutas</a>
+                <a href="ticket.html" class="nav-link active-link">Ticket</a>
+                <a href="registro.html" class="nav-link">Registro</a>
+                <a href="noticias.html" class="nav-link">Noticias</a>
+                <a href="contacto.html" class="nav-link">Contacto</a>
+            </nav>
+            <button onclick="toggleMenu()" class="md:hidden bg-yellow-500/10 border border-yellow-500/20 text-yellow-500 px-4 py-2 rounded-lg font-black text-xs flex items-center gap-2">
+                MENU <i class="fa-solid fa-bars-staggered"></i>
+            </button>
+        </header>
+
+        <main class="max-w-6xl mx-auto px-6 py-8 w-full flex-grow z-20">
+            
+            <!-- STEP 1 -->
+            <div id="step-1" class="text-center animate-fade-up">
+                <h1 class="text-5xl md:text-6xl font-black uppercase italic tracking-tighter mb-4 leading-none">Tickets <span class="text-yellow-500">Oficiales</span></h1>
+                <p class="text-gray-400 text-[11px] uppercase tracking-[3px] max-w-xl mx-auto mb-10 font-bold leading-relaxed">Movilidad Universitaria - Ruta Ventanilla.</p>
+                
+                <div class="max-w-xs mx-auto space-y-6">
+                    <input type="text" id="dniInput" class="input-tech" placeholder="INGRESE DNI" maxlength="8">
+                    <button onclick="Core.startScan()" class="bg-yellow-500 text-black font-black p-5 rounded-2xl w-full uppercase tracking-widest hover:bg-white transition shadow-xl">Verificar Alumno</button>
+                    
+                    <div class="grid grid-cols-2 gap-3">
+                        <a href="lista.html" target="_blank" class="bg-white/5 border border-white/10 p-4 rounded-2xl text-[9px] font-black uppercase tracking-widest hover:bg-yellow-500 hover:text-black transition flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-list-ul"></i> Lista de HOY
+                        </a>
+                        <a href="tutorial.html" class="bg-white/5 border border-white/10 p-4 rounded-2xl text-[9px] font-black uppercase tracking-widest hover:bg-yellow-500 hover:text-black transition flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-play"></i> Tutorial
+                        </a>
+                    </div>
+                    <!-- GLOBO 1 -->
+                    <div id="globe-box"></div>
+                    
+                    <a href="AccesoDelegados.html" target="_blank" class="flex items-center justify-center gap-3 text-[10px] font-black text-gray-600 hover:text-yellow-500 transition uppercase tracking-widest mt-6">
+                        <i class="fa-solid fa-user-shield text-lg"></i> Acceso Restringido Delegados
+                    </a>
+                </div>
+            </div>
+
+            <!-- STEP 2 -->
+            <div id="step-2" class="hidden-section animate-fade-up">
+                <div class="bg-white/5 border border-white/10 p-8 rounded-[40px] mb-8 border-l-8 border-l-yellow-500 shadow-2xl flex flex-col md:flex-row justify-between items-center gap-8">
+                    <div class="flex items-center gap-6">
+                        <div class="w-24 h-24 bg-yellow-500 rounded-[30px] flex items-center justify-center text-black text-5xl shadow-2xl"><i class="fa-solid fa-user-check"></i></div>
+                        <div>
+                            <h2 id="userName" class="text-3xl font-black uppercase italic leading-none"></h2>
+                            <p id="userFac" class="text-yellow-500 text-[11px] font-black mt-3 tracking-[5px] uppercase"></p>
+                            <p class="text-[9px] text-gray-500 font-mono mt-2">DNI: <span id="userDni" class="text-white"></span> | SESIÓN: <span class="text-green-500 font-black">SINCRO ACTIVA</span></p>
+                        </div>
+                    </div>
+                    <div class="text-center md:text-right bg-black/40 p-5 rounded-3xl border border-white/5 min-w-[200px]">
+                        <p class="text-[9px] text-gray-500 font-black uppercase mb-1 tracking-widest">Sincronización Hoy</p>
+                        <div class="text-4xl font-black text-yellow-500" id="total-requests">00</div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                    <div id="card-m" class="card-panorama" style="background-image: url('DSC07555-768x432.jpg');" onclick="Core.requestTicket('mañana')">
+                        <span id="badge-m" class="relative z-10 text-[9px] font-black px-4 py-1 rounded-full mb-2"></span>
+                        <h3 class="shift-title text-white">Mañana</h3>
+                        <div class="time-badge">SALIDA: 05:15 AM</div>
+                        <p class="delegate-msg">Apertura automática</p>
+                    </div>
+                    <div id="card-t" class="card-panorama" style="background-image: url('DSC07588-768x432.jpg');" onclick="Core.goToTarde()">
+                        <span id="badge-t" class="relative z-10 text-[9px] font-black px-4 py-1 rounded-full mb-2"></span>
+                        <h3 class="shift-title text-white">Tarde</h3>
+                        <div class="time-badge">SALIDA: 06:00 PM</div>
+                        <p class="delegate-msg">Activación Sincronizada</p>
+                    </div>
+                </div>
+                <div id="card-n" class="card-panorama w-full" style="background-image: url('DSC07629-768x432.jpg');" onclick="Core.requestTicket('noche')">
+                    <span id="badge-n" class="relative z-10 text-[9px] font-black px-4 py-1 rounded-full mb-2"></span>
+                    <h3 class="shift-title text-white text-5xl">Noche</h3>
+                    <div class="time-badge">SALIDA: 10:15 PM</div>
+                    <p class="delegate-msg">Activación Sincronizada</p>
+                </div>
+                <!-- GLOBO 2 -->
+                <div id="globe-box-2"></div>
+            </div>
+
+            <!-- STEP 3 -->
+            <div id="step-3" class="hidden-section animate-fade-up text-center">
+                <div class="ticket-tech">
+                    <div class="tech-header"><h2>MOVILIDAD UNAC</h2><p>RUTA VENTANILLA</p></div>
+                    <div class="p-8">
+                        <p id="t-fecha" class="text-sm font-black text-black uppercase mb-6"></p>
+                        <div class="bg-gray-100 border-4 border-dashed border-gray-300 rounded-[50px] py-10 mb-8 relative">
+                            <p class="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-1">NÚMERO DE ASIENTO</p>
+                            <div id="seat-area" class="asiento-display">--</div>
+                        </div>
+                        <div id="qrcode-vip" class="flex justify-center mb-8"></div>
+                        <div class="data-grid space-y-2">
+                            <div class="flex justify-between text-[11px] border-b pb-2"><span>PASAJERO:</span> <span id="t-nom" class="font-bold"></span></div>
+                            <div class="flex justify-between text-[11px] border-b pb-2"><span>DNI:</span> <span id="t-dni" class="font-bold"></span></div>
+                            <div class="turno-box"><span>Turno Seleccionado</span> <span id="t-turno-val"></span></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <footer class="w-full py-12 flex flex-col items-center border-t border-white/5 bg-black/40 mt-10 relative z-20">
+            <span class="text-center text-[10px] font-bold tracking-[8px] text-yellow-500 mb-2 uppercase">SISTEMA CREADO POR SEBASTIAN</span>
+            <span class="text-center text-[9px] text-gray-500 tracking-[1px] uppercase italic font-light">© 2026 UNAC - Movilidad Universitaria.</span>
+        </footer>
+    </div>
+
+    <script>
+        function toggleMenu() { document.getElementById('mobile-menu').classList.toggle('active'); }
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBxaeAc2nq7iEeiLejvja3lKGwR4E09QS4",
+            authDomain: "ventanilla-unac.firebaseapp.com",
+            databaseURL: "https://ventanilla-unac-default-rtdb.firebaseio.com",
+            projectId: "ventanilla-unac",
+            storageBucket: "ventanilla-unac.appspot.com",
+            messagingSenderId: "245380540222",
+            appId: "1:245380540222:web:d4ea08b7818bf89d682e6f"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        const Core = {
+            alumno: null,
+            init: function() { this.initThree('globe-box'); this.listenFirebase(); },
+
+            listenFirebase: function() {
+                db.ref('sistema/config').on('value', snap => {
+                    const cfg = snap.val() || {};
+                    const h = new Date().getHours();
+                    this.upUI('badge-m', 'card-m', (h >= 21 || h < 7));
+                    this.upUI('badge-t', 'card-t', cfg.tarde_activo);
+                    this.upUI('badge-n', 'card-n', cfg.noche_activo);
+                });
+                db.ref('sistema/viajes/' + new Date().toISOString().split('T')[0]).on('value', snap => {
+                    let t = 0; const d = snap.val() || {};
+                    ['mañana','tarde','noche'].forEach(k => { if(d[k] && d[k].contador) t += d[k].contador; });
+                    document.getElementById('total-requests').innerText = t.toString().padStart(2, '0');
+                });
+            },
+
+            upUI: function(bid, cid, act) {
+                const b = document.getElementById(bid), c = document.getElementById(cid);
+                if(!b || !c) return;
+                b.innerText = act ? "ACTIVO" : "INACTIVO";
+                b.className = act ? "relative z-10 text-[9px] font-black px-4 py-1 rounded-full mb-2 bg-green-500 animate-pulse" : "relative z-10 text-[9px] font-black px-4 py-1 rounded-full mb-2 bg-red-600";
+                act ? c.classList.remove('locked') : c.classList.add('locked');
+            },
+
+            startScan: function() {
+                const dni = document.getElementById('dniInput').value.trim();
+                if(dni.length < 8) return Swal.fire('Error', 'DNI incompleto', 'warning');
+                document.getElementById('scanning-overlay').style.display = 'flex';
+                db.ref('alumnos/' + dni).once('value').then(snap => {
+                    if(snap.exists()){
+                        this.alumno = snap.val(); this.alumno.dni = dni;
+                        document.getElementById('scanning-overlay').style.display = 'none';
+                        document.getElementById('step-1').classList.add('hidden-section');
+                        document.getElementById('step-2').classList.remove('hidden-section');
+                        document.getElementById('userName').innerText = this.alumno.Estudiante;
+                        document.getElementById('userFac').innerText = this.alumno.Facultad;
+                        document.getElementById('userDni').innerText = dni;
+                        this.initThree('globe-box-2'); // Inicia globo en paso 2
+                    } else {
+                        document.getElementById('scanning-overlay').style.display = 'none';
+                        Swal.fire('Error', 'No registrado.', 'error');
+                    }
+                });
+            },
+
+            goToTarde: function() { window.location.href = "tardeunac12.html"; },
+
+            requestTicket: function(turno) {
+                const fecha = new Date().toISOString().split('T')[0];
+                const ruta = `sistema/viajes/${fecha}/${turno}`;
+                document.getElementById('scanning-overlay').style.display = 'flex';
+                db.ref(`${ruta}/registros/${this.alumno.dni}`).once('value').then(snap => {
+                    if(snap.exists()) return this.renderTicket(turno, snap.val());
+                    db.ref(`${ruta}/contador`).transaction(c => (c || 0) + 1, (err, comm, snapC) => {
+                        if(comm){
+                            const data = { orden: snapC.val(), nombre: this.alumno.Estudiante, hora: new Date().toLocaleTimeString() };
+                            db.ref(`${ruta}/registros/${this.alumno.dni}`).set(data);
+                            this.renderTicket(turno, data);
+                        }
+                    });
+                });
+            },
+
+            renderTicket: function(turno, data) {
+                document.getElementById('t-nom').innerText = data.nombre;
+                document.getElementById('t-dni').innerText = this.alumno.dni;
+                document.getElementById('t-turno-val').innerText = turno.toUpperCase();
+                document.getElementById('t-fecha').innerText = new Date().toLocaleDateString('es-PE', { weekday:'long', year:'numeric', month:'long', day:'numeric' }).toUpperCase();
+                const area = document.getElementById('seat-area');
+                area.innerText = data.orden <= 40 ? data.orden.toString().padStart(2,'0') : "PARADO";
+                document.getElementById('qrcode-vip').innerHTML = "";
+                new QRCode(document.getElementById("qrcode-vip"), { text: `UNAC-${this.alumno.dni}-${turno}-${data.orden}`, width: 180, height: 180 });
+                document.getElementById('scanning-overlay').style.display = 'none';
+                document.getElementById('step-2').classList.add('hidden-section');
+                document.getElementById('step-3').classList.remove('hidden-section');
+            },
+
+            initThree: function(id) {
+                const container = document.getElementById(id); if(!container) return; container.innerHTML = "";
+                const scene = new THREE.Scene(), camera = new THREE.PerspectiveCamera(45, container.clientWidth/container.clientHeight, 0.1, 1000);
+                const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+                renderer.setSize(container.clientWidth, container.clientHeight); container.appendChild(renderer.domElement);
+                const globe = new THREE.Mesh(new THREE.IcosahedronGeometry(30, 2), new THREE.MeshBasicMaterial({ color: 0xffc107, wireframe: true, transparent: true, opacity: 0.15 }));
+                scene.add(globe); camera.position.z = 100;
+                const animate = () => { requestAnimationFrame(animate); globe.rotation.y += 0.003; renderer.render(scene, camera); };
+                animate();
+            }
+        };
+        window.onload = () => Core.init();
+    </script>
+</body>
+</html>
