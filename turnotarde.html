@@ -57,12 +57,12 @@
 </head>
 <body>
 
-    <!-- BLOQUEO DE SEGURIDAD -->
+    <!-- BLOQUEO DE SEGURIDAD (SHIELD) -->
     <div id="blocking-overlay" class="fixed inset-0 bg-[#050505] z-[10000] flex flex-col items-center justify-center text-center p-6" style="display: none;">
         <i class="fa-solid fa-shield-halved text-7xl text-red-600 mb-6 animate-pulse"></i>
-        <h2 class="text-3xl font-black text-white uppercase tracking-tighter">Terminal Bloqueado</h2>
-        <p class="text-gray-500 text-sm mt-4 mb-8 max-w-xs">Acceso directo no permitido. Debe iniciar sesión desde el Portal Principal.</p>
-        <a href="ticket.html" class="bg-white text-black font-black px-10 py-4 rounded-2xl text-xs uppercase tracking-widest">Volver al Inicio</a>
+        <h2 class="text-3xl font-black text-white uppercase tracking-tighter">Sincronización Expirada</h2>
+        <p id="block-reason" class="text-gray-500 text-sm mt-4 mb-8 max-w-xs">Su tiempo de sesión ha caducado o el acceso no es válido. Debe volver al portal para re-validar.</p>
+        <a href="ticket.html" class="bg-white text-black font-black px-10 py-4 rounded-2xl text-xs uppercase tracking-widest">Regresar al Portal</a>
     </div>
 
     <!-- CARGADOR -->
@@ -74,7 +74,7 @@
                 <i class="fa-solid fa-bus text-yellow-500 text-2xl"></i>
             </div>
         </div>
-        <p class="font-mono text-[9px] tracking-[5px] text-white uppercase">Sincronizando Pase...</p>
+        <p class="font-mono text-[9px] tracking-[5px] text-white uppercase">Validando Acceso...</p>
     </div>
 
     <div class="main-wrapper">
@@ -88,6 +88,8 @@
                     <span class="text-[9px] text-yellow-500 font-bold uppercase mt-1">Ruta Ventanilla - Tarde</span>
                 </div>
             </div>
+            <!-- Contador visual de expiración (opcional) -->
+            <div id="timer-display" class="text-[10px] font-black bg-red-600/20 text-red-500 px-3 py-1 rounded-full border border-red-500/50 uppercase">Sesión Activa</div>
         </header>
 
         <main class="flex-grow flex flex-col items-center justify-center px-6 pb-12 relative z-20">
@@ -137,7 +139,6 @@
                         </div>
                         
                         <div class="p-8">
-                            <!-- Estado de Asiento (Sin número de orden visible) -->
                             <div id="seat-box" class="seat-status">
                                 <i id="seat-icon"></i>
                                 <span id="seat-text">---</span>
@@ -176,18 +177,12 @@
                     </div>
 
                     <div class="ticket-bottom text-center">
-                        <div id="qrcode-vip" class="inline-block p-4 bg-white border-2 border-gray-50 rounded-[30px] mb-4"></div>
+                        <div id="qrcode-vip" class="inline-block p-4 bg-white border-2 border-gray-100 rounded-[30px] mb-4"></div>
                         <div class="flex flex-col items-center">
                             <span class="text-[10px] font-black text-gray-800 uppercase tracking-[2px]">Firma Digital UNAC</span>
                             <span class="text-[8px] font-bold text-gray-400 mt-1 uppercase italic">Personal e Intransferible</span>
                         </div>
                     </div>
-                </div>
-
-                <div class="text-center mt-8">
-                    <button onclick="location.reload()" class="bg-white/5 border border-white/10 text-white/40 text-[10px] font-bold px-6 py-3 rounded-full uppercase tracking-widest transition hover:text-white">
-                        <i class="fa-solid fa-rotate mr-2"></i> Finalizar Sesión
-                    </button>
                 </div>
             </div>
 
@@ -214,14 +209,29 @@
             init: function() { 
                 this.checkSecurity(); 
                 this.initThree(); 
+                // Revisión constante cada 5 segundos
+                setInterval(() => this.checkSecurity(), 5000);
             },
 
             checkSecurity: function() {
-                if (sessionStorage.getItem('valid_session') !== 'true') {
-                    document.getElementById('blocking-overlay').style.display = 'flex';
+                const isValid = sessionStorage.getItem('valid_session');
+                const authTime = sessionStorage.getItem('auth_timestamp');
+                const currentTime = Date.now();
+                const overlay = document.getElementById('blocking-overlay');
+
+                // LÓGICA DE 1 MINUTO (60000 ms)
+                if (isValid !== 'true' || !authTime || (currentTime - authTime > 60000)) {
+                    sessionStorage.clear(); // Limpiar rastro
+                    overlay.style.display = 'flex';
+                    return;
                 }
+
+                // Listener para el switch del delegado (Sincronización en tiempo real)
                 db.ref('sistema/config/tarde_activo').on('value', snap => {
-                    if(snap.val() === false) document.getElementById('blocking-overlay').style.display = 'flex';
+                    if(snap.val() === false) {
+                        overlay.style.display = 'flex';
+                        document.getElementById('block-reason').innerText = "El delegado ha cerrado el sistema de sincronización tarde.";
+                    }
                 });
             },
 
@@ -282,7 +292,6 @@
                 const icon = document.getElementById('seat-icon');
                 const text = document.getElementById('seat-text');
 
-                // LÓGICA DE TEXTO (Sin el número de orden visible)
                 if(ticket.orden <= 40) {
                     box.className = "seat-status seat-ok";
                     icon.className = "fa-solid fa-chair";
@@ -295,7 +304,7 @@
 
                 document.getElementById('qrcode-vip').innerHTML = "";
                 new QRCode(document.getElementById("qrcode-vip"), { 
-                    text: `UNAC-T:${dni}:O:${ticket.orden}:F:${fecha}`, 
+                    text: `UNAC-T:${dni}:V:${fecha}`, 
                     width: 150, 
                     height: 150,
                     correctLevel : QRCode.CorrectLevel.H
