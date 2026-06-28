@@ -19,11 +19,11 @@
 
     <style>
         :root { --accent: #ffc107; --dark: #050505; --fire: #ff4500; --white-clean: #f8f9fa; }
-        body, html { margin: 0; padding: 0; min-height: 100vh; background-color: var(--dark); font-family: 'Inter', sans-serif; color: #ffffff; overflow-x: hidden; }
+        body, html { margin: 0; padding: 0; min-height: 100vh; background-color: var(--dark); font-family: 'Inter', sans-serif; color: #ffffff; overflow-x: hidden; user-select: none; }
         @keyframes fadeInUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
         .animate-fade-up { animation: fadeInUp 0.8s ease-out forwards; }
         
-        /* HUD DE CARGA AVANZADO ORIGINAL */
+        /* HUD DE CARGA ORIGINAL DETALLADO */
         #scanning-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.98); z-index: 9999; display: none; flex-direction: column; align-items: center; justify-content: center; text-align: center; backdrop-filter: blur(25px); }
         .hud-box { width: 320px; height: 320px; border: 2px solid rgba(255, 193, 7, 0.2); position: relative; border-radius: 40px; background: rgba(255,255,255,0.02); overflow: hidden; }
         .hud-line { position: absolute; width: 100%; height: 4px; background: var(--accent); top: 0; animation: scanLine 2.5s linear infinite; box-shadow: 0 0 30px var(--accent); }
@@ -39,10 +39,10 @@
         #mobile-menu { position: fixed; inset: 0; background: rgba(5,5,5,0.98); z-index: 2000; display: none; flex-direction: column; align-items: center; justify-content: center; gap: 35px; }
         #mobile-menu.active { display: flex; }
 
-        /* TARJETAS DETALLADAS ORIGINALES */
+        /* TARJETAS DETALLADAS */
         .card-panorama { position: relative; overflow: hidden; border-radius: 35px; border: 1px solid rgba(255,255,255,0.1); height: 280px; display: flex; flex-direction: column; align-items: center; justify-content: center; background-size: cover; background-position: center; transition: 0.4s; cursor: pointer; text-align: center; padding: 20px; }
         .card-panorama::before { content: ''; position: absolute; inset: 0; background: rgba(0,0,0,0.7); z-index: 1; }
-        .card-panorama.locked { filter: grayscale(1) opacity(0.5); pointer-events: none; }
+        .card-panorama.locked { filter: grayscale(1) opacity(0.5); pointer-events: none; cursor: not-allowed; }
         .shift-title { position: relative; z-index: 2; font-family: 'Montserrat'; font-weight: 900; font-style: italic; font-size: 35px; text-transform: uppercase; }
         .time-badge { position: relative; z-index: 2; background: white; color: black; padding: 5px 20px; border-radius: 10px; font-weight: 900; font-size: 12px; margin: 10px 0; box-shadow: 0 5px 15px rgba(255,255,255,0.2); }
         .delegate-msg { position: relative; z-index: 2; font-size: 9px; color: #aaa; text-transform: uppercase; font-weight: 700; max-width: 200px; margin-top: 10px; line-height: 1.4; }
@@ -61,13 +61,13 @@
 </head>
 <body>
 
-    <!-- HUD DE CARGA ORIGINAL DETALLADO (10 SEGUNDOS) -->
+    <!-- HUD DE CARGA (10 SEGUNDOS DETALLADOS) -->
     <div id="scanning-overlay">
         <div class="hud-box">
             <div class="hud-line"></div>
             <div class="absolute inset-0 flex flex-col items-center justify-center p-8">
                 <i class="fa-solid fa-satellite-dish text-6xl text-yellow-500/40 mb-6 animate-bounce"></i>
-                <p id="loader-msg" class="font-mono text-[11px] tracking-[3px] text-yellow-500 uppercase font-black">ESTABLECIENDO CONEXIÓN SEGURA...</p>
+                <p id="loader-msg" class="font-mono text-[11px] tracking-[3px] text-yellow-500 uppercase font-black"></p>
                 <div class="mt-10 w-full bg-white/10 h-1.5 rounded-full overflow-hidden">
                     <div id="progress-bar" class="h-full bg-yellow-500 w-0 transition-all duration-500"></div>
                 </div>
@@ -96,7 +96,6 @@
                     <span class="text-[9px] text-yellow-500 font-bold">Movilidad</span>
                 </div>
             </div>
-            <!-- BARRA DE NAVEGACIÓN ORIGINAL DETALLADA -->
             <nav class="hidden md:flex gap-8 nav-desktop">
                 <a href="index.html" class="nav-link">Inicio</a>
                 <a href="rutas.html" class="nav-link">Rutas</a>
@@ -112,7 +111,7 @@
 
         <main class="max-w-6xl mx-auto px-6 py-8 w-full flex-grow z-20">
             
-            <!-- PASO 1 ORIGINAL -->
+            <!-- PASO 1 -->
             <div id="step-1" class="text-center animate-fade-up">
                 <h1 class="text-5xl md:text-6xl font-black uppercase italic tracking-tighter mb-4 leading-none">Tickets <span class="text-yellow-500">Oficiales</span></h1>
                 <p class="text-gray-400 text-[11px] uppercase tracking-[3px] max-w-xl mx-auto mb-10 font-bold leading-relaxed">
@@ -123,25 +122,18 @@
                     <input type="text" id="dniInput" class="input-tech" placeholder="INGRESE DNI" maxlength="8">
                     <button onclick="Core.startScan()" class="bg-yellow-500 text-black font-black p-5 rounded-2xl w-full uppercase tracking-widest hover:bg-white transition shadow-xl">Verificar Alumno</button>
                     
-                    <!-- BOTONES DE LISTA Y TUTORIAL RECUPERADOS -->
                     <div class="grid grid-cols-2 gap-3">
-                        <a href="lista.html" target="_blank" class="bg-white/5 border border-white/10 p-4 rounded-2xl text-[9px] font-black uppercase tracking-widest hover:bg-yellow-500 hover:text-black transition flex items-center justify-center gap-2">
-                            <i class="fa-solid fa-list-ul"></i> Lista de HOY
-                        </a>
-                        <a href="tutorial.html" class="bg-white/5 border border-white/10 p-4 rounded-2xl text-[9px] font-black uppercase tracking-widest hover:bg-yellow-500 hover:text-black transition flex items-center justify-center gap-2">
-                            <i class="fa-solid fa-play"></i> Tutorial
-                        </a>
+                        <a href="lista.html" target="_blank" class="bg-white/5 border border-white/10 p-4 rounded-2xl text-[9px] font-black uppercase tracking-widest hover:bg-yellow-500 hover:text-black transition flex items-center justify-center gap-2"><i class="fa-solid fa-list-ul"></i> Lista de HOY</a>
+                        <a href="tutorial.html" class="bg-white/5 border border-white/10 p-4 rounded-2xl text-[9px] font-black uppercase tracking-widest hover:bg-yellow-500 hover:text-black transition flex items-center justify-center gap-2"><i class="fa-solid fa-play"></i> Tutorial</a>
                     </div>
                     <div id="globe-box"></div>
-
-                    <!-- BOTÓN ACCESO DELEGADOS RECUPERADO -->
                     <a href="AccesoDelegados.html" target="_blank" class="flex items-center justify-center gap-3 text-[10px] font-black text-gray-600 hover:text-yellow-500 transition uppercase tracking-widest mt-6">
                         <i class="fa-solid fa-user-shield text-lg"></i> Acceso Restringido Delegados
                     </a>
                 </div>
             </div>
 
-            <!-- PASO 2 ORIGINAL DETALLADO -->
+            <!-- PASO 2 -->
             <div id="step-2" class="hidden-section animate-fade-up">
                 <div class="bg-white/5 border border-white/10 p-8 rounded-[40px] mb-8 border-l-8 border-l-yellow-500 shadow-2xl flex flex-col md:flex-row justify-between items-center gap-8">
                     <div class="flex items-center gap-6">
@@ -152,29 +144,27 @@
                             <p class="text-[9px] text-gray-500 font-mono mt-2">DNI: <span id="userDni" class="text-white"></span> | <span class="text-green-500 font-black">SINCRO ACTIVA</span></p>
                         </div>
                     </div>
-                    <!-- INFO DETALLADA DE SINCRONIZACIÓN -->
                     <div class="text-center md:text-right bg-black/40 p-5 rounded-3xl border border-white/5 min-w-[200px]">
                         <p class="text-[9px] text-gray-500 font-black uppercase mb-1 tracking-widest">Sincronización Hoy</p>
                         <div class="text-4xl font-black text-yellow-500" id="total-requests">00</div>
                     </div>
                 </div>
-
-                <!-- TARJETAS DETALLADAS ORIGINALES -->
+                
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                    <div id="card-m" class="card-panorama" style="background-image: url('DSC07555-768x432.jpg');" onclick="Core.requestTicket('mañana')">
+                    <div id="card-m" class="card-panorama" onclick="Core.requestTicket('mañana')">
                         <span id="badge-m" class="relative z-10 text-[9px] font-black px-4 py-1 rounded-full mb-2"></span>
                         <h3 class="shift-title text-white">Mañana</h3>
                         <div class="time-badge">SALIDA: 05:15 AM</div>
                         <p class="delegate-msg">Apertura automática de sistema</p>
                     </div>
-                    <div id="card-t" class="card-panorama" style="background-image: url('DSC07588-768x432.jpg');" onclick="Core.goToTarde()">
+                    <div id="card-t" class="card-panorama" onclick="Core.goToTarde()">
                         <span id="badge-t" class="relative z-10 text-[9px] font-black px-4 py-1 rounded-full mb-2"></span>
                         <h3 class="shift-title text-white">Tarde</h3>
                         <div class="time-badge">SALIDA: 06:00 PM</div>
                         <p class="delegate-msg">Activación Sincronizada Delegado</p>
                     </div>
                 </div>
-                <div id="card-n" class="card-panorama w-full" style="background-image: url('DSC07629-768x432.jpg');" onclick="Core.requestTicket('noche')">
+                <div id="card-n" class="card-panorama w-full" onclick="Core.requestTicket('noche')">
                     <span id="badge-n" class="relative z-10 text-[9px] font-black px-4 py-1 rounded-full mb-2"></span>
                     <h3 class="shift-title text-white text-5xl">Noche</h3>
                     <div class="time-badge">SALIDA: 10:15 PM</div>
@@ -183,7 +173,7 @@
                 <div id="globe-box-2"></div>
             </div>
 
-            <!-- PASO 3 ORIGINAL -->
+            <!-- PASO 3 -->
             <div id="step-3" class="hidden-section animate-fade-up text-center">
                 <div class="ticket-tech">
                     <div class="tech-header">
@@ -239,14 +229,9 @@
                     const cfg = snap.val() || {};
                     tardeActivo = !!cfg.tarde_activo;
                     nocheActivo = !!cfg.noche_activo;
-                    this.upUI('badge-m', 'card-m', (new Date().getHours() >= 21 || new Date().getHours() < 7));
+                    this.upUI('badge-m', 'card-m', (new Date().getHours() >= 21 || new Date().getHours() < 10));
                     this.upUI('badge-t', 'card-t', tardeActivo);
                     this.upUI('badge-n', 'card-n', nocheActivo);
-                });
-                db.ref('sistema/viajes/' + new Date().toISOString().split('T')[0]).on('value', snap => {
-                    let total = 0; const data = snap.val() || {};
-                    ['mañana','tarde','noche'].forEach(t => { if(data[t] && data[t].contador) total += data[t].contador; });
-                    document.getElementById('total-requests').innerText = total.toString().padStart(2, '0');
                 });
             },
 
@@ -261,20 +246,21 @@
             startScan: async function() {
                 const dni = document.getElementById('dniInput').value.trim();
                 if(dni.length < 8) return Swal.fire('Error', 'DNI incompleto', 'warning');
+                
                 const overlay = document.getElementById('scanning-overlay'), msg = document.getElementById('loader-msg'), bar = document.getElementById('progress-bar');
                 overlay.style.display = 'flex';
                 
-                // HUD DE 10 SEGUNDOS CON MENSAJES DETALLADOS ORIGINALES
                 const steps = [
-                    {p:"15%",t:"ESTABLECIENDO CONEXIÓN SEGURA..."},
-                    {p:"30%",t:"BUSCANDO DNI EN PADRÓN..."},
-                    {p:"50%",t:"VALIDANDO MATRÍCULA SEMESTRAL..."},
-                    {p:"75%",t:"SINCRONIZANDO CON BASE FIREBASE..."},
-                    {p:"100%",t:"AUTORIZACIÓN COMPLETADA CON ÉXITO"}
+                    {p:"20%",t:"ESTABLECIENDO CONEXIÓN SEGURA..."},
+                    {p:"40%",t:"BUSCANDO DNI EN PADRÓN..."},
+                    {p:"60%",t:"VALIDANDO MATRÍCULA SEMESTRAL..."},
+                    {p:"80%",t:"SINCRONIZANDO CON BASE FIREBASE..."},
+                    {p:"100%",t:"AUTORIZACIÓN COMPLETADA"}
                 ];
-                for (const s of steps) { 
-                    msg.innerText = s.t; 
-                    bar.style.width = s.p; 
+
+                for (const s of steps) {
+                    msg.innerText = s.t;
+                    bar.style.width = s.p;
                     await new Promise(r => setTimeout(r, 1200)); 
                 }
 
@@ -289,31 +275,37 @@
                         document.getElementById('userDni').innerText = dni;
                         this.initThree('globe-box-2');
                     } else {
-                        Swal.fire('Error', 'DNI no encontrado en el padrón.', 'error');
+                        this.handleNotRegistered(dni);
                     }
                 });
             },
 
-            // ESTA ES LA ÚNICA FUNCIÓN QUE HE CAMBIADO PARA ARREGLAR TU BUG
+            handleNotRegistered: function(dni) {
+                Swal.fire({
+                    title: '<span style="color:#ffc107">IDENTIDAD NO ENCONTRADA</span>',
+                    html: `<div style="text-align: left; font-size: 14px; color: #ccc; line-height:1.6;">
+                        <p>El DNI <b>${dni}</b> no figura en la base de movilidad oficial de este semestre.</p><br>
+                        <b>¿Por qué sucede esto?</b><ul style="margin-left:20px; list-style:circle; color:#aaa;">
+                        <li>No has realizado tu registro de ruta obligatorio.</li><li>Tu facultad aún no ha enviado el padrón actualizado.</li><li>El DNI ingresado es erróneo.</li></ul><br>
+                        <p><b>Acción:</b> Pulsa el botón inferior para ir al formulario de registro.</p></div>`,
+                    icon: 'warning', background: '#050505', color: '#fff', confirmButtonColor: '#ffc107', confirmButtonText: 'IR A REGISTRO', showCancelButton: true, cancelButtonText: 'REINTENTAR'
+                }).then((r) => { if (r.isConfirmed) window.location.href = "registro.html"; });
+            },
+
             goToTarde: function() {
-                if (tardeActivo && this.alumno) {
-                    // Generamos la clave de seguridad que pide el "Código 3" (Turno Tarde)
-                    sessionStorage.setItem('access_token_tarde', 'VALID_SESSION_UNAC');
-                    
-                    // Grabamos el permiso en Firebase para que el servidor también lo sepa
+                if (!tardeActivo) return Swal.fire('Acceso Restringido', 'El turno tarde aún no ha sido habilitado por el delegado.', 'warning');
+                if (this.alumno) {
+                    sessionStorage.setItem('access_token_tarde', 'VALID_AUTH_' + this.alumno.dni);
                     db.ref('sistema/permisos/' + this.alumno.dni).set({
                         timestamp: firebase.database.ServerValue.TIMESTAMP,
                         autorizado: true,
-                        estudiante: this.alumno.Estudiante
-                    }).then(() => {
-                        window.location.href = "turnotarde.html";
-                    });
-                } else {
-                    Swal.fire('Inactivo', 'El turno tarde aún no ha sido habilitado por el delegado.', 'warning');
+                        nombre: this.alumno.Estudiante
+                    }).then(() => { window.location.href = "turnotarde.html"; });
                 }
             },
 
             requestTicket: function(turno) {
+                if (turno === 'noche' && !nocheActivo) return Swal.fire('Inactivo', 'Turno noche no habilitado.', 'warning');
                 const fecha = new Date().toISOString().split('T')[0];
                 const ruta = `sistema/viajes/${fecha}/${turno}`;
                 document.getElementById('scanning-overlay').style.display = 'flex';
@@ -335,7 +327,7 @@
                 document.getElementById('t-turno-val').innerText = turno.toUpperCase();
                 document.getElementById('t-fecha').innerText = new Date().toLocaleDateString('es-PE', { weekday:'long', year:'numeric', month:'long', day:'numeric' }).toUpperCase();
                 const area = document.getElementById('seat-area');
-                area.innerText = data.orden <= 40 ? data.orden.toString().padStart(2,'0') : "PARADO";
+                area.innerText = data.orden <= 40 ? data.orden.toString().padStart(2,'0') : "🧍";
                 document.getElementById('qrcode-vip').innerHTML = "";
                 new QRCode(document.getElementById("qrcode-vip"), { text: `UNAC-SECURE-${this.alumno.dni}-${turno.charAt(0).toUpperCase()}-${data.orden}`, width: 180, height: 180 });
                 document.getElementById('scanning-overlay').style.display = 'none';
