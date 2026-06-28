@@ -39,28 +39,29 @@
         .student-card { border-left: 5px solid transparent; transition: 0.3s; }
         .status-red { border-color: #ef4444; background: rgba(239, 68, 68, 0.1); }
         .status-green { border-color: #10b981; background: rgba(16, 185, 129, 0.1); }
+        .badge-seat { background: #ffc107; color: black; padding: 2px 8px; border-radius: 5px; font-size: 8px; font-weight: 900; }
+        .badge-stand { background: #4b5563; color: white; padding: 2px 8px; border-radius: 5px; font-size: 8px; font-weight: 900; }
     </style>
 </head>
 <body oncontextmenu="return false;">
 
-    <!-- NOTIFICACIÓN DE ESCANEO -->
     <div id="flash-notif">
         <i id="flash-icon" class="fa-solid fa-circle-check text-7xl mb-4"></i><br>
         <span id="flash-text" class="text-3xl uppercase italic tracking-tighter">--</span>
         <p id="flash-subtext" class="text-sm mt-2 font-bold opacity-80 uppercase tracking-widest"></p>
     </div>
 
-    <!-- PESTAÑA DE LISTA MAESTRA REESTRUCTURADA -->
+    <!-- PESTAÑA DE LISTA MAESTRA -->
     <div id="master-list-view">
         <header class="p-6 border-b border-white/10 flex justify-between items-center bg-black">
             <div>
                 <h3 class="text-xl font-black text-yellow-500 uppercase italic">Registro de Pasajeros</h3>
-                <p id="list-date" class="text-[9px] text-gray-500 uppercase tracking-widest">Sincronización en Tiempo Real</p>
+                <p id="list-date" class="text-[9px] text-gray-500 uppercase tracking-widest">Prioridad: Asientos Asegurados</p>
             </div>
             <button onclick="toggleLista(false)" class="bg-white/10 w-12 h-12 rounded-full flex items-center justify-center text-white text-2xl hover:bg-red-600 transition">&times;</button>
         </header>
         
-        <div class="p-4 bg-white/5 flex gap-4 text-[9px] font-black uppercase">
+        <div class="p-4 bg-white/5 flex gap-4 text-[9px] font-black uppercase overflow-x-auto">
             <div class="flex items-center gap-2 text-green-500"><div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div> ESCANEADOS</div>
             <div class="flex items-center gap-2 text-red-500"><div class="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div> POR ESCANEAR</div>
         </div>
@@ -87,7 +88,7 @@
         <div id="login-container" class="w-full max-w-sm px-6 mt-10 text-center">
             <div class="mb-8">
                 <h1 class="text-3xl font-black uppercase italic tracking-tighter">Acceso <span class="text-yellow-500">Privado</span></h1>
-                <p class="text-gray-500 text-[10px] tracking-widest uppercase mt-2">Ingrese Credenciales de Delegado</p>
+                <p class="text-gray-500 text-[10px] tracking-widest uppercase mt-2">Seguridad Ruta Ventanilla</p>
             </div>
             <div class="glass p-8 text-left">
                 <label class="text-[9px] font-black text-yellow-500 uppercase tracking-widest">DNI Delegado</label>
@@ -174,7 +175,7 @@
                 document.getElementById('scanner-container').classList.remove('hidden');
                 document.getElementById('list-date').innerText = "Hoy: " + new Date().toLocaleDateString();
                 iniciarSistema();
-            } else { alert("Credenciales incorrectas"); }
+            } else { alert("DNI o contraseña incorrecta"); }
         }
 
         function iniciarSistema() {
@@ -188,7 +189,6 @@
                 const asistencias = (data.asistencias && data.asistencias[fecha]) ? data.asistencias[fecha] : {};
                 
                 let combined = [];
-                // Recolectamos de todos los turnos para la lista
                 ['mañana', 'tarde', 'noche'].forEach(turno => {
                     if (viajes[turno] && viajes[turno].registros) {
                         Object.keys(viajes[turno].registros).forEach(dni => {
@@ -196,11 +196,21 @@
                                 dni: dni,
                                 nombre: viajes[turno].registros[dni].nombre,
                                 hora: viajes[turno].registros[dni].hora,
+                                orden: viajes[turno].registros[dni].orden || 999,
                                 turno: turno.toUpperCase(),
                                 verificado: asistencias[dni] ? true : false
                             });
                         });
                     }
+                });
+
+                // ORDENAMIENTO PRIORIZADO: ASIENTOS (ORDEN <= 40) PRIMERO
+                combined.sort((a, b) => {
+                    const aHasSeat = a.orden <= 40;
+                    const bHasSeat = b.orden <= 40;
+                    if (aHasSeat && !bHasSeat) return -1;
+                    if (!aHasSeat && bHasSeat) return 1;
+                    return a.orden - b.orden;
                 });
 
                 document.getElementById('contador-sol').innerText = combined.length;
@@ -213,27 +223,30 @@
 
         function renderMasterList(students) {
             const container = document.getElementById('contenedor-lista-maestra');
-            if(students.length === 0) { container.innerHTML = "<p class='text-center text-gray-500 py-10'>No hay tickets generados hoy.</p>"; return; }
+            if(students.length === 0) { container.innerHTML = "<p class='text-center text-gray-500 py-10'>No hay tickets hoy.</p>"; return; }
 
-            // Ordenar por hora (más recientes primero)
-            students.sort((a, b) => b.hora.localeCompare(a.hora));
-
-            container.innerHTML = students.map(s => `
-                <div class="p-4 rounded-xl student-card ${s.verificado ? 'status-green' : 'status-red'} flex justify-between items-center shadow-lg animate-fade-in">
-                    <div>
-                        <p class="text-[11px] font-black uppercase text-white">${s.nombre}</p>
-                        <div class="flex gap-4 mt-1">
-                            <span class="text-[9px] font-bold text-yellow-500"><i class="fa-solid fa-clock"></i> TICKET: ${s.hora}</span>
-                            <span class="text-[9px] font-bold text-blue-400"><i class="fa-solid fa-bus"></i> TURNO: ${s.turno}</span>
+            container.innerHTML = students.map(s => {
+                const hasSeat = s.orden <= 40;
+                return `
+                    <div class="p-4 rounded-xl student-card ${s.verificado ? 'status-green' : 'status-red'} flex justify-between items-center shadow-lg animate-fade-in">
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <span class="${hasSeat ? 'badge-seat' : 'badge-stand'}">${hasSeat ? 'ASIENTO' : 'PARADO'}</span>
+                                <p class="text-[11px] font-black uppercase text-white">${s.nombre}</p>
+                            </div>
+                            <div class="flex gap-4 mt-1">
+                                <span class="text-[9px] font-bold text-yellow-500"><i class="fa-solid fa-clock"></i> TICKET: ${s.hora}</span>
+                                <span class="text-[9px] font-bold text-blue-400"><i class="fa-solid fa-bus"></i> TURNO: ${s.turno}</span>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <span class="text-[10px] font-black ${s.verificado ? 'text-green-500' : 'text-red-500'} uppercase">
+                                ${s.verificado ? '<i class="fa-solid fa-check-double"></i> LISTO' : '<i class="fa-solid fa-hourglass-half"></i> ESPERA'}
+                            </span>
                         </div>
                     </div>
-                    <div class="text-right">
-                        <span class="text-[10px] font-black ${s.verificado ? 'text-green-500' : 'text-red-500'} uppercase">
-                            ${s.verificado ? '<i class="fa-solid fa-check-double"></i> A BORDO' : '<i class="fa-solid fa-hourglass-half"></i> PENDIENTE'}
-                        </span>
-                    </div>
-                </div>
-            `).join('');
+                `;
+            }).join('');
         }
 
         async function onScanSuccess(text) {
@@ -244,15 +257,12 @@
             const fechaHoy = new Date().toISOString().split('T')[0];
             const tKey = parts[3].toLowerCase() === 't' ? 'tarde' : (parts[3].toLowerCase() === 'n' ? 'noche' : 'mañana');
 
-            // 1. Validar duplicado
             const snapAsis = await db.ref(`sistema/asistencias/${fechaHoy}/${dniScanned}`).once('value');
             if(snapAsis.exists()) return notificarFlash("YA ESCANEADO", "error", "Este alumno ya subió");
 
-            // 2. Validar ticket
             const snapTicket = await db.ref(`sistema/viajes/${fechaHoy}/${tKey}/registros/${dniScanned}`).once('value');
             if(!snapTicket.exists()) return notificarFlash("TICKET CADUCADO", "error", "No corresponde a hoy");
 
-            // 3. Registrar
             db.ref(`sistema/asistencias/${fechaHoy}/${dniScanned}`).set({
                 nombre: snapTicket.val().nombre, hora: new Date().toLocaleTimeString(), delegado: delegadoActivo
             });
@@ -272,7 +282,7 @@
         }
 
         async function reiniciarFirebase() {
-            if(confirm("¿BORRAR TODA LA BASE DE DATOS DE HOY?")) {
+            if(confirm("¿BORRAR TODO HOY?")) {
                 const fecha = new Date().toISOString().split('T')[0];
                 await Promise.all([
                     db.ref(`sistema/viajes/${fecha}`).remove(),
