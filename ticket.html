@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>UNAC | Terminal Oficial de Movilidad</title>
     
-    <!-- LIBRERÍAS EXTERNAS MANTENIDAS AL 100% -->
+    <!-- LIBRERÍAS EXTERNAS - MANTENIDAS AL 100% -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
@@ -23,12 +23,13 @@
         @keyframes fadeInUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
         .animate-fade-up { animation: fadeInUp 0.8s ease-out forwards; }
         
-        /* HUD DE CARGA ORIGINAL DETALLADO */
+        /* HUD DE CARGA AVANZADO (10 SEGUNDOS) */
         #scanning-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.98); z-index: 9999; display: none; flex-direction: column; align-items: center; justify-content: center; text-align: center; backdrop-filter: blur(25px); }
         .hud-box { width: 320px; height: 320px; border: 2px solid rgba(255, 193, 7, 0.2); position: relative; border-radius: 40px; background: rgba(255,255,255,0.02); overflow: hidden; }
         .hud-line { position: absolute; width: 100%; height: 4px; background: var(--accent); top: 0; animation: scanLine 2.5s linear infinite; box-shadow: 0 0 30px var(--accent); }
         @keyframes scanLine { 0% { top: 0; } 100% { top: 100%; } }
 
+        /* DISEÑO ORIGINAL */
         .main-wrapper { position: relative; z-index: 10; background: radial-gradient(circle at 50% 50%, rgba(20, 20, 20, 0.4) 0%, rgba(5, 5, 5, 1) 100%), url('https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?auto=format&fit=crop&q=80&w=1920'); background-size: cover; background-position: center; background-attachment: fixed; min-height: 100vh; width: 100%; display: flex; flex-direction: column; }
         header { width: 100%; max-width: 1200px; padding: 30px 20px; z-index: 1000; margin: 0 auto; }
         .nav-link { font-size: 11px; font-weight: 700; letter-spacing: 2px; color: rgba(255, 255, 255, 0.6); text-transform: uppercase; position: relative; transition: 0.3s; }
@@ -41,7 +42,7 @@
 
         /* TARJETAS DETALLADAS */
         .card-panorama { position: relative; overflow: hidden; border-radius: 35px; border: 1px solid rgba(255,255,255,0.1); height: 280px; display: flex; flex-direction: column; align-items: center; justify-content: center; background-size: cover; background-position: center; transition: 0.4s; cursor: pointer; text-align: center; padding: 20px; }
-        .card-panorama::before { content: ''; position: absolute; inset: 0; background: rgba(0,0,0,0.7); z-index: 1; }
+        .card-panorama::before { content: ''; position: absolute; inset: 0; background: rgba(0,0,0,0.7); z-index: 1; pointer-events: none; }
         .card-panorama.locked { filter: grayscale(1) opacity(0.5); pointer-events: none; cursor: not-allowed; }
         .shift-title { position: relative; z-index: 2; font-family: 'Montserrat'; font-weight: 900; font-style: italic; font-size: 35px; text-transform: uppercase; }
         .time-badge { position: relative; z-index: 2; background: white; color: black; padding: 5px 20px; border-radius: 10px; font-weight: 900; font-size: 12px; margin: 10px 0; box-shadow: 0 5px 15px rgba(255,255,255,0.2); }
@@ -61,13 +62,13 @@
 </head>
 <body>
 
-    <!-- HUD DE CARGA (10 SEGUNDOS DETALLADOS) -->
+    <!-- HUD DE CARGA (10 SEGUNDOS) -->
     <div id="scanning-overlay">
         <div class="hud-box">
             <div class="hud-line"></div>
             <div class="absolute inset-0 flex flex-col items-center justify-center p-8">
                 <i class="fa-solid fa-satellite-dish text-6xl text-yellow-500/40 mb-6 animate-bounce"></i>
-                <p id="loader-msg" class="font-mono text-[11px] tracking-[3px] text-yellow-500 uppercase font-black"></p>
+                <p id="loader-msg" class="font-mono text-[11px] tracking-[3px] text-yellow-500 uppercase font-black">INICIANDO CONEXIÓN...</p>
                 <div class="mt-10 w-full bg-white/10 h-1.5 rounded-full overflow-hidden">
                     <div id="progress-bar" class="h-full bg-yellow-500 w-0 transition-all duration-500"></div>
                 </div>
@@ -76,15 +77,15 @@
         <p class="text-[9px] text-gray-500 font-bold uppercase mt-6 tracking-[6px]">SISTEMA DE VERIFICACIÓN BIOMÉTRICA UNAC</p>
     </div>
 
-    <!-- MENÚ MÓVIL ORIGINAL -->
+    <!-- MENÚ MÓVIL COMPLETO -->
     <div id="mobile-menu">
         <button onclick="toggleMenu()" class="absolute top-10 right-10 text-yellow-500 text-4xl"><i class="fa-solid fa-xmark"></i></button>
-        <a href="index.html" class="text-xl font-black uppercase tracking-[4px] text-white">Inicio</a>
-        <a href="rutas.html" class="text-xl font-black uppercase tracking-[4px] text-white">Rutas</a>
-        <a href="ticket.html" class="text-xl font-black uppercase tracking-[4px] text-yellow-500 underline">Ticket</a>
-        <a href="registro.html" class="text-xl font-black uppercase tracking-[4px] text-white">Registro</a>
-        <a href="noticias.html" class="text-xl font-black uppercase tracking-[4px] text-white">Noticias</a>
-        <a href="contacto.html" class="text-xl font-black uppercase tracking-[4px] text-white">Contacto</a>
+        <a href="index.html" class="text-xl font-black uppercase text-white">Inicio</a>
+        <a href="rutas.html" class="text-xl font-black uppercase text-white">Rutas</a>
+        <a href="ticket.html" class="text-xl font-black uppercase text-yellow-500 underline">Ticket</a>
+        <a href="registro.html" class="text-xl font-black uppercase text-white">Registro</a>
+        <a href="noticias.html" class="text-xl font-black uppercase text-white">Noticias</a>
+        <a href="contacto.html" class="text-xl font-black uppercase text-white">Contacto</a>
     </div>
 
     <div class="main-wrapper">
@@ -96,6 +97,7 @@
                     <span class="text-[9px] text-yellow-500 font-bold">Movilidad</span>
                 </div>
             </div>
+            <!-- NAVEGACIÓN COMPLETA -->
             <nav class="hidden md:flex gap-8 nav-desktop">
                 <a href="index.html" class="nav-link">Inicio</a>
                 <a href="rutas.html" class="nav-link">Rutas</a>
@@ -104,9 +106,7 @@
                 <a href="noticias.html" class="nav-link">Noticias</a>
                 <a href="contacto.html" class="nav-link">Contacto</a>
             </nav>
-            <button onclick="toggleMenu()" class="md:hidden bg-yellow-500/10 border border-yellow-500/20 text-yellow-500 px-4 py-2 rounded-lg font-black text-xs flex items-center gap-2">
-                MENU <i class="fa-solid fa-bars-staggered"></i>
-            </button>
+            <button onclick="toggleMenu()" class="md:hidden bg-yellow-500/10 border border-yellow-500/20 text-yellow-500 px-4 py-2 rounded-lg font-black text-xs">MENU <i class="fa-solid fa-bars-staggered"></i></button>
         </header>
 
         <main class="max-w-6xl mx-auto px-6 py-8 w-full flex-grow z-20">
@@ -126,6 +126,7 @@
                         <a href="lista.html" target="_blank" class="bg-white/5 border border-white/10 p-4 rounded-2xl text-[9px] font-black uppercase tracking-widest hover:bg-yellow-500 hover:text-black transition flex items-center justify-center gap-2"><i class="fa-solid fa-list-ul"></i> Lista de HOY</a>
                         <a href="tutorial.html" class="bg-white/5 border border-white/10 p-4 rounded-2xl text-[9px] font-black uppercase tracking-widest hover:bg-yellow-500 hover:text-black transition flex items-center justify-center gap-2"><i class="fa-solid fa-play"></i> Tutorial</a>
                     </div>
+                    <!-- GLOBO 1 -->
                     <div id="globe-box"></div>
                     <a href="AccesoDelegados.html" target="_blank" class="flex items-center justify-center gap-3 text-[10px] font-black text-gray-600 hover:text-yellow-500 transition uppercase tracking-widest mt-6">
                         <i class="fa-solid fa-user-shield text-lg"></i> Acceso Restringido Delegados
@@ -149,37 +150,35 @@
                         <div class="text-4xl font-black text-yellow-500" id="total-requests">00</div>
                     </div>
                 </div>
-                
+
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                    <div id="card-m" class="card-panorama" onclick="Core.requestTicket('mañana')">
+                    <div id="card-m" class="card-panorama" style="background-image: url('DSC07555-768x432.jpg');" onclick="Core.requestTicket('mañana')">
                         <span id="badge-m" class="relative z-10 text-[9px] font-black px-4 py-1 rounded-full mb-2"></span>
                         <h3 class="shift-title text-white">Mañana</h3>
                         <div class="time-badge">SALIDA: 05:15 AM</div>
                         <p class="delegate-msg">Apertura automática de sistema</p>
                     </div>
-                    <div id="card-t" class="card-panorama" onclick="Core.goToTarde()">
+                    <div id="card-t" class="card-panorama" style="background-image: url('DSC07588-768x432.jpg');" onclick="Core.goToTarde()">
                         <span id="badge-t" class="relative z-10 text-[9px] font-black px-4 py-1 rounded-full mb-2"></span>
                         <h3 class="shift-title text-white">Tarde</h3>
                         <div class="time-badge">SALIDA: 06:00 PM</div>
                         <p class="delegate-msg">Activación Sincronizada Delegado</p>
                     </div>
                 </div>
-                <div id="card-n" class="card-panorama w-full" onclick="Core.requestTicket('noche')">
+                <div id="card-n" class="card-panorama w-full" style="background-image: url('DSC07629-768x432.jpg');" onclick="Core.requestTicket('noche')">
                     <span id="badge-n" class="relative z-10 text-[9px] font-black px-4 py-1 rounded-full mb-2"></span>
                     <h3 class="shift-title text-white text-5xl">Noche</h3>
                     <div class="time-badge">SALIDA: 10:15 PM</div>
                     <p class="delegate-msg">Activación Sincronizada Delegado</p>
                 </div>
+                <!-- GLOBO 2 -->
                 <div id="globe-box-2"></div>
             </div>
 
             <!-- PASO 3 -->
             <div id="step-3" class="hidden-section animate-fade-up text-center">
                 <div class="ticket-tech">
-                    <div class="tech-header">
-                        <h2>MOVILIDAD UNIVERSITARIA   RUTA VENTANILLA</h2>
-                        <p>TICKET DIGITAL - UNAC</p>
-                    </div>
+                    <div class="tech-header"><h2>MOVILIDAD UNAC</h2><p>RUTA VENTANILLA</p></div>
                     <div class="p-8">
                         <p id="t-fecha" class="text-sm font-black text-black uppercase mb-6"></p>
                         <div class="bg-gray-100 border-4 border-dashed border-gray-300 rounded-[50px] py-10 mb-8 relative">
@@ -187,9 +186,9 @@
                             <div id="seat-area" class="asiento-display">--</div>
                         </div>
                         <div id="qrcode-vip" class="flex justify-center mb-8"></div>
-                        <div class="data-grid space-y-2">
-                            <div class="flex justify-between text-[11px] border-b pb-2"><span>PASAJERO:</span> <span id="t-nom" class="font-bold text-black uppercase"></span></div>
-                            <div class="flex justify-between text-[11px] border-b pb-2"><span>DOCUMENTO DNI:</span> <span id="t-dni" class="font-bold text-black"></span></div>
+                        <div class="data-grid space-y-2 text-left">
+                            <div class="flex justify-between text-[11px] border-b pb-2"><span>PASAJERO:</span> <span id="t-nom" class="font-bold uppercase"></span></div>
+                            <div class="flex justify-between text-[11px] border-b pb-2"><span>DNI:</span> <span id="t-dni" class="font-bold"></span></div>
                             <div class="turno-box"><span>Turno Seleccionado</span> <span id="t-turno-val"></span></div>
                         </div>
                     </div>
@@ -233,6 +232,11 @@
                     this.upUI('badge-t', 'card-t', tardeActivo);
                     this.upUI('badge-n', 'card-n', nocheActivo);
                 });
+                db.ref('sistema/viajes/' + new Date().toISOString().split('T')[0]).on('value', snap => {
+                    let total = 0; const data = snap.val() || {};
+                    ['mañana','tarde','noche'].forEach(t => { if(data[t] && data[t].contador) total += data[t].contador; });
+                    document.getElementById('total-requests').innerText = total.toString().padStart(2, '0');
+                });
             },
 
             upUI: function(bid, cid, act) {
@@ -250,18 +254,18 @@
                 const overlay = document.getElementById('scanning-overlay'), msg = document.getElementById('loader-msg'), bar = document.getElementById('progress-bar');
                 overlay.style.display = 'flex';
                 
+                // HUD 10 SEGUNDOS REALES
                 const steps = [
                     {p:"20%",t:"ESTABLECIENDO CONEXIÓN SEGURA..."},
-                    {p:"40%",t:"BUSCANDO DNI EN PADRÓN..."},
-                    {p:"60%",t:"VALIDANDO MATRÍCULA SEMESTRAL..."},
-                    {p:"80%",t:"SINCRONIZANDO CON BASE FIREBASE..."},
+                    {p:"40%",t:"BUSCANDO DNI EN PADRÓN 2024..."},
+                    {p:"60%",t:"VALIDANDO MATRÍCULA Y FACULTAD..."},
+                    {p:"85%",t:"SINCRONIZANDO CON NUBE FIREBASE..."},
                     {p:"100%",t:"AUTORIZACIÓN COMPLETADA"}
                 ];
-
-                for (const s of steps) {
-                    msg.innerText = s.t;
-                    bar.style.width = s.p;
-                    await new Promise(r => setTimeout(r, 1200)); 
+                for (const s of steps) { 
+                    msg.innerText = s.t; 
+                    bar.style.width = s.p; 
+                    await new Promise(r => setTimeout(r, 2000)); 
                 }
 
                 db.ref('alumnos/' + dni).once('value').then(snap => {
@@ -283,29 +287,26 @@
             handleNotRegistered: function(dni) {
                 Swal.fire({
                     title: '<span style="color:#ffc107">IDENTIDAD NO ENCONTRADA</span>',
-                    html: `<div style="text-align: left; font-size: 14px; color: #ccc; line-height:1.6;">
-                        <p>El DNI <b>${dni}</b> no figura en la base de movilidad oficial de este semestre.</p><br>
-                        <b>¿Por qué sucede esto?</b><ul style="margin-left:20px; list-style:circle; color:#aaa;">
-                        <li>No has realizado tu registro de ruta obligatorio.</li><li>Tu facultad aún no ha enviado el padrón actualizado.</li><li>El DNI ingresado es erróneo.</li></ul><br>
-                        <p><b>Acción:</b> Pulsa el botón inferior para ir al formulario de registro.</p></div>`,
-                    icon: 'warning', background: '#050505', color: '#fff', confirmButtonColor: '#ffc107', confirmButtonText: 'IR A REGISTRO', showCancelButton: true, cancelButtonText: 'REINTENTAR'
+                    html: `<div style="text-align: left; font-size: 14px; color: #ccc;">
+                        <p>El DNI <b>${dni}</b> no figura en la base de datos oficial del semestre actual.</p><br>
+                        <b>¿Por qué ocurre esto?</b><ul style="margin-left:20px; list-style:circle; margin-top:10px;">
+                        <li>No has realizado tu registro de ruta.</li><li>Tu facultad no ha enviado el padrón.</li></ul><br>
+                        <p><b>Acción:</b> Pulsa abajo para registrarte ahora mismo.</p></div>`,
+                    icon: 'warning', background: '#050505', color: '#fff', confirmButtonText: 'IR A REGISTRO', showCancelButton: true, cancelButtonText: 'REINTENTAR', confirmButtonColor: '#ffc107'
                 }).then((r) => { if (r.isConfirmed) window.location.href = "registro.html"; });
             },
 
+            // REDIRECCIÓN HACIA EL CÓDIGO 3 (turnotarde.html)
             goToTarde: function() {
-                if (!tardeActivo) return Swal.fire('Acceso Restringido', 'El turno tarde aún no ha sido habilitado por el delegado.', 'warning');
-                if (this.alumno) {
-                    sessionStorage.setItem('access_token_tarde', 'VALID_AUTH_' + this.alumno.dni);
-                    db.ref('sistema/permisos/' + this.alumno.dni).set({
-                        timestamp: firebase.database.ServerValue.TIMESTAMP,
-                        autorizado: true,
-                        nombre: this.alumno.Estudiante
-                    }).then(() => { window.location.href = "turnotarde.html"; });
+                if (tardeActivo && this.alumno) {
+                    sessionStorage.setItem('valid_session', 'true'); // HABILITA LA ENTRADA AL CÓDIGO 3
+                    window.location.href = "turnotarde.html";
+                } else {
+                    Swal.fire('Inactivo', 'Turno tarde no habilitado por el delegado.', 'warning');
                 }
             },
 
             requestTicket: function(turno) {
-                if (turno === 'noche' && !nocheActivo) return Swal.fire('Inactivo', 'Turno noche no habilitado.', 'warning');
                 const fecha = new Date().toISOString().split('T')[0];
                 const ruta = `sistema/viajes/${fecha}/${turno}`;
                 document.getElementById('scanning-overlay').style.display = 'flex';
@@ -327,9 +328,9 @@
                 document.getElementById('t-turno-val').innerText = turno.toUpperCase();
                 document.getElementById('t-fecha').innerText = new Date().toLocaleDateString('es-PE', { weekday:'long', year:'numeric', month:'long', day:'numeric' }).toUpperCase();
                 const area = document.getElementById('seat-area');
-                area.innerText = data.orden <= 40 ? data.orden.toString().padStart(2,'0') : "🧍";
+                area.innerText = data.orden <= 40 ? data.orden.toString().padStart(2,'0') : "PARADO";
                 document.getElementById('qrcode-vip').innerHTML = "";
-                new QRCode(document.getElementById("qrcode-vip"), { text: `UNAC-SECURE-${this.alumno.dni}-${turno.charAt(0).toUpperCase()}-${data.orden}`, width: 180, height: 180 });
+                new QRCode(document.getElementById("qrcode-vip"), { text: `UNAC-V-${this.alumno.dni}-${turno}-${data.orden}`, width: 180, height: 180 });
                 document.getElementById('scanning-overlay').style.display = 'none';
                 document.getElementById('step-2').classList.add('hidden-section');
                 document.getElementById('step-3').classList.remove('hidden-section');
