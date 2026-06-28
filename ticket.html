@@ -289,13 +289,17 @@
             },
 
             goToTarde: function() {
-                if (tardeActivo) {
-                    const firma = { auth: true, timestamp: new Date().getTime(), key: "UNAC-SECURE-KEY" };
-                    sessionStorage.setItem('access_token_tarde', JSON.stringify(firma));
-                    window.location.href = "turnotarde.html";
+                if (tardeActivo && this.alumno) {
+        // GENERAR PERMISO REAL EN FIREBASE (Válido por 5 min)
+        db.ref('sistema/permisos/' + this.alumno.dni).set({
+            timestamp: firebase.database.ServerValue.TIMESTAMP,
+            autorizado: true
+        }).then(() => {
+            window.location.href = "turnotarde.html";
+        });
                 } else {
-                    Swal.fire('Inactivo', 'Turno no habilitado por delegado.', 'warning');
-                }
+        Swal.fire('Inactivo', 'Debe verificar su DNI primero.', 'warning');
+                    }
             },
 
             requestTicket: function(turno) {
