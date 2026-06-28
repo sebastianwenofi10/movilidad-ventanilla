@@ -18,7 +18,7 @@
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
 
     <style>
-        :root { --accent: #ffc107; --dark: #050505; --unac-blue: #003066; }
+        :root { --accent: #ffc107; --dark: #050505; }
         body, html { margin: 0; padding: 0; min-height: 100vh; background-color: var(--dark); font-family: 'Inter', sans-serif; color: #ffffff; overflow-x: hidden; user-select: none; }
         
         .main-wrapper { 
@@ -29,17 +29,14 @@
 
         #scanning-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.98); z-index: 9999; display: none; flex-direction: column; align-items: center; justify-content: center; backdrop-filter: blur(25px); }
 
-        /* TECLADO PREMIUM */
         .keypad-btn { background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 20px; color: white; font-size: 24px; font-weight: 800; padding: 22px 0; transition: all 0.2s; cursor: pointer; }
         .keypad-btn:active { background: var(--accent); color: black; transform: scale(0.92); }
 
-        /* DISEÑO DE TICKET AEROPUERTO */
         .ticket-container { width: 100%; max-width: 380px; margin: 0 auto; filter: drop-shadow(0 40px 80px rgba(0,0,0,0.6)); }
         
         .ticket-top { background: #fff; color: #000; border-radius: 40px 40px 0 0; padding-bottom: 5px; }
         .ticket-bottom { background: #fff; color: #000; border-radius: 0 0 40px 40px; border-top: 2px dashed #e2e8f0; padding: 30px; position: relative; }
         
-        /* Muescas laterales */
         .ticket-bottom::before, .ticket-bottom::after { content: ''; position: absolute; width: 30px; height: 30px; background: var(--dark); border-radius: 50%; top: -15px; }
         .ticket-bottom::before { left: -15px; }
         .ticket-bottom::after { right: -15px; }
@@ -48,14 +45,14 @@
         .seat-ok { background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
         .seat-stand { background: #fef3c7; color: #92400e; border: 1px solid #fde68a; }
 
-        .info-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; text-align: left; }
-        .info-label { font-size: 9px; font-weight: 800; color: #94a3b8; text-transform: uppercase; letter-spacing: 1px; }
-        .info-value { font-size: 13px; font-weight: 800; color: #0f172a; text-transform: uppercase; }
+        .info-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; text-align: left; }
+        .info-label { font-size: 8px; font-weight: 800; color: #94a3b8; text-transform: uppercase; letter-spacing: 1px; }
+        .info-value { font-size: 11px; font-weight: 800; color: #0f172a; text-transform: uppercase; line-height: 1.2; }
 
         .instruction-card { background: #f8fafc; border-radius: 20px; padding: 15px; border-left: 5px solid var(--accent); margin-top: 20px; }
 
         .hidden-section { display: none !important; }
-        #globe-area { width: 100%; height: 200px; pointer-events: none; opacity: 0.2; }
+        #globe-area { width: 100%; height: 180px; pointer-events: none; opacity: 0.15; }
     </style>
 </head>
 <body>
@@ -101,7 +98,7 @@
                     <div class="text-center mb-10">
                         <i class="fa-solid fa-fingerprint text-yellow-500 text-3xl mb-4"></i>
                         <h3 class="text-[10px] font-bold text-gray-400 tracking-[4px] uppercase">Verificación de Firma</h3>
-                        <p class="text-[11px] text-white/60">Ingrese su DNI para emitir el ticket</p>
+                        <p class="text-[11px] text-white/60">Confirme su DNI para la cola</p>
                     </div>
 
                     <div class="mb-8">
@@ -123,14 +120,13 @@
                         <button onclick="Core.pressKey('backspace')" class="keypad-btn text-yellow-500"><i class="fa-solid fa-delete-left"></i></button>
                     </div>
 
-                    <button onclick="Core.submitDni()" class="bg-yellow-500 text-black font-black p-5 rounded-3xl w-full uppercase text-xs tracking-widest shadow-xl transition-all hover:scale-[1.02] active:scale-95">EMITIR PASE DIGITAL</button>
+                    <button onclick="Core.submitDni()" class="bg-yellow-500 text-black font-black p-5 rounded-3xl w-full uppercase text-xs tracking-widest shadow-xl">EMITIR PASE DIGITAL</button>
                 </div>
             </div>
 
-            <!-- PASO 2: TICKET PROFESIONAL -->
+            <!-- PASO 2: TICKET FINAL -->
             <div id="step-3" class="hidden-section w-full animate-fade-up">
                 <div class="ticket-container">
-                    <!-- Parte Superior -->
                     <div class="ticket-top">
                         <div class="bg-black text-white p-6 rounded-t-[40px] text-center border-b-4 border-yellow-500">
                             <div class="flex items-center justify-center gap-3 mb-1">
@@ -141,41 +137,44 @@
                         </div>
                         
                         <div class="p-8">
-                            <!-- Estado de Asiento -->
+                            <!-- Estado de Asiento (Sin número de orden visible) -->
                             <div id="seat-box" class="seat-status">
                                 <i id="seat-icon"></i>
                                 <span id="seat-text">---</span>
                             </div>
 
                             <div class="info-grid mt-6">
-                                <div class="col-span-2 border-b border-gray-100 pb-3 mb-1">
+                                <div class="col-span-2 border-b border-gray-100 pb-3">
                                     <span class="info-label">Pasajero Autorizado</span>
-                                    <p id="t-nom" class="info-value text-sm">---</p>
+                                    <p id="t-nom" class="info-value">---</p>
                                 </div>
-                                <div class="border-r border-gray-100 pr-2">
+                                <div class="border-r border-gray-100 pr-2 pt-2">
                                     <span class="info-label">DNI Estudiante</span>
                                     <p id="t-dni" class="info-value">---</p>
                                 </div>
-                                <div class="pl-2">
+                                <div class="pl-2 pt-2">
+                                    <span class="info-label">Fecha Ticket</span>
+                                    <p id="t-fecha" class="info-value">---</p>
+                                </div>
+                                <div class="border-r border-gray-100 pr-2 pt-2">
                                     <span class="info-label">Hora Emisión</span>
                                     <p id="t-hora" class="info-value text-blue-600">---</p>
                                 </div>
-                                <div class="col-span-2 mt-2">
-                                    <span class="info-label">Unidad de Transporte</span>
-                                    <p class="info-value">Ruta Ventanilla (18:00 PM)</p>
+                                <div class="pl-2 pt-2">
+                                    <span class="info-label">Ruta</span>
+                                    <p class="info-value">Ventanilla</p>
                                 </div>
                             </div>
 
                             <div class="instruction-card">
                                 <p class="text-[9px] font-extrabold text-gray-700 leading-tight">
                                     <i class="fa-solid fa-qrcode mr-2 text-yellow-600"></i>
-                                    IMPORTANTE: Este ticket DEBE ser escaneado por el delegado de movilidad al abordar para validar su asiento.
+                                    IMPORTANTE: Este ticket DEBE ser escaneado por el delegado de movilidad al abordar para validar su ingreso.
                                 </p>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Parte Inferior -->
                     <div class="ticket-bottom text-center">
                         <div id="qrcode-vip" class="inline-block p-4 bg-white border-2 border-gray-50 rounded-[30px] mb-4"></div>
                         <div class="flex flex-col items-center">
@@ -187,7 +186,7 @@
 
                 <div class="text-center mt-8">
                     <button onclick="location.reload()" class="bg-white/5 border border-white/10 text-white/40 text-[10px] font-bold px-6 py-3 rounded-full uppercase tracking-widest transition hover:text-white">
-                        <i class="fa-solid fa-rotate mr-2"></i> Nueva Consulta
+                        <i class="fa-solid fa-rotate mr-2"></i> Finalizar Sesión
                     </button>
                 </div>
             </div>
@@ -241,19 +240,21 @@
                     const aluSnap = await db.ref('alumnos/' + typedDni).once('value');
                     if(!aluSnap.exists()) {
                         document.getElementById('scanning-overlay').style.display = 'none';
-                        return Swal.fire('No Encontrado', 'DNI no está en el padrón oficial', 'error');
+                        return Swal.fire('No Encontrado', 'DNI no está en el padrón', 'error');
                     }
 
                     const alu = aluSnap.val();
-                    const fecha = new Date().toISOString().split('T')[0];
-                    const refReg = db.ref(`sistema/viajes/${fecha}/tarde/registros/${typedDni}`);
+                    const fechaRaw = new Date();
+                    const fechaID = fechaRaw.toISOString().split('T')[0];
+                    const fechaTicket = fechaRaw.toLocaleDateString('es-PE', { day:'2-digit', month:'2-digit', year:'numeric' });
+                    
+                    const refReg = db.ref(`sistema/viajes/${fechaID}/tarde/registros/${typedDni}`);
                     const snapReg = await refReg.once('value');
 
                     if(snapReg.exists()){
-                        this.renderFinal(alu, typedDni, snapReg.val());
+                        this.renderFinal(alu, typedDni, snapReg.val(), fechaTicket);
                     } else {
-                        // Transacción de orden
-                        db.ref(`sistema/viajes/${fecha}/tarde/contador`).transaction(c => (c || 0) + 1, (err, comm, snapCont) => {
+                        db.ref(`sistema/viajes/${fechaID}/tarde/contador`).transaction(c => (c || 0) + 1, (err, comm, snapCont) => {
                             if(comm){
                                 const data = { 
                                     nombre: alu.Estudiante, 
@@ -261,46 +262,45 @@
                                     hora: new Date().toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit' })
                                 };
                                 refReg.set(data);
-                                this.renderFinal(alu, typedDni, data);
+                                this.renderFinal(alu, typedDni, data, fechaTicket);
                             }
                         });
                     }
                 } catch (e) {
                     document.getElementById('scanning-overlay').style.display = 'none';
-                    Swal.fire('Error de Red', 'Verifique su conexión', 'error');
+                    Swal.fire('Error', 'Intente nuevamente', 'error');
                 }
             },
 
-            renderFinal: function(alu, dni, ticket) {
+            renderFinal: function(alu, dni, ticket, fecha) {
                 document.getElementById('t-nom').innerText = alu.Estudiante;
                 document.getElementById('t-dni').innerText = dni;
                 document.getElementById('t-hora').innerText = ticket.hora;
+                document.getElementById('t-fecha').innerText = fecha;
                 
                 const box = document.getElementById('seat-box');
                 const icon = document.getElementById('seat-icon');
                 const text = document.getElementById('seat-text');
 
-                // LÓGICA DE ASIENTO VS PARADO
+                // LÓGICA DE TEXTO (Sin el número de orden visible)
                 if(ticket.orden <= 40) {
                     box.className = "seat-status seat-ok";
                     icon.className = "fa-solid fa-chair";
-                    text.innerText = "Asiento Confirmado #" + ticket.orden;
+                    text.innerText = "Asiento Asegurado";
                 } else {
                     box.className = "seat-status seat-stand";
                     icon.className = "fa-solid fa-person-walking";
-                    text.innerText = "Viaje de Pie (Cola #" + ticket.orden + ")";
+                    text.innerText = "Viaje de Pie";
                 }
 
-                // QR CORREGIDO
                 document.getElementById('qrcode-vip').innerHTML = "";
                 new QRCode(document.getElementById("qrcode-vip"), { 
-                    text: `UNAC-VERIFY:${dni}:ORD:${ticket.orden}`, 
+                    text: `UNAC-T:${dni}:O:${ticket.orden}:F:${fecha}`, 
                     width: 150, 
                     height: 150,
                     correctLevel : QRCode.CorrectLevel.H
                 });
 
-                // Apagar cargador y mostrar ticket
                 setTimeout(() => {
                     document.getElementById('scanning-overlay').style.display = 'none';
                     document.getElementById('step-1').classList.add('hidden-section');
@@ -315,7 +315,7 @@
                 const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
                 renderer.setSize(container.clientWidth, container.clientHeight);
                 container.appendChild(renderer.domElement);
-                const sphere = new THREE.Mesh(new THREE.IcosahedronGeometry(22, 1), new THREE.MeshBasicMaterial({ color: 0xffc107, wireframe: true, transparent: true, opacity: 0.1 }));
+                const sphere = new THREE.Mesh(new THREE.IcosahedronGeometry(20, 1), new THREE.MeshBasicMaterial({ color: 0xffc107, wireframe: true, transparent: true, opacity: 0.1 }));
                 scene.add(sphere); camera.position.z = 50;
                 function animate() { requestAnimationFrame(animate); sphere.rotation.y += 0.005; renderer.render(scene, camera); }
                 animate();
