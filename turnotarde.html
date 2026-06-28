@@ -18,14 +18,13 @@
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
 
     <style>
-        :root { --accent: #ffc107; --dark: #050505; --blue-unac: #003366; }
+        :root { --accent: #ffc107; --dark: #050505; }
         body, html { margin: 0; padding: 0; min-height: 100vh; background-color: var(--dark); font-family: 'Inter', sans-serif; color: #ffffff; overflow-x: hidden; user-select: none; }
         
+        /* Fondo limpio sin imágenes distractoras */
         .main-wrapper { 
             position: relative; z-index: 10; 
-            background: radial-gradient(circle at 50% 50%, rgba(10, 10, 10, 0.7) 0%, rgba(5, 5, 5, 1) 100%), 
-                        url('https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&q=80'); 
-            background-size: cover; background-position: center; background-attachment: fixed; 
+            background: radial-gradient(circle at 50% 50%, #111 0%, #050505 100%);
             min-height: 100vh; width: 100%; display: flex; flex-direction: column; 
         }
 
@@ -34,55 +33,61 @@
         .keypad-btn { background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 18px; color: white; font-size: 24px; font-weight: 800; padding: 20px 0; transition: all 0.2s; cursor: pointer; }
         .keypad-btn:active { background: var(--accent); color: black; transform: scale(0.9); }
 
-        /* TICKET ULTRA PROFESIONAL */
-        .ticket-container { width: 100%; max-width: 400px; margin: 0 auto; position: relative; filter: drop-shadow(0 30px 60px rgba(0,0,0,0.8)); }
+        /* TICKET TÉCNICO PROFESIONAL */
+        .ticket-container { width: 100%; max-width: 380px; margin: 0 auto; filter: drop-shadow(0 30px 60px rgba(0,0,0,0.5)); }
         
-        .ticket-main { background: #fff; color: #000; border-radius: 35px 35px 0 0; overflow: hidden; position: relative; }
-        .ticket-stub { background: #f8f9fa; color: #000; border-radius: 0 0 35px 35px; border-top: 2px dashed #ddd; padding: 25px; position: relative; }
+        .ticket-main { background: #fff; color: #000; border-radius: 35px 35px 0 0; overflow: hidden; }
+        .ticket-stub { background: #fff; color: #000; border-radius: 0 0 35px 35px; border-top: 2px dashed #ccc; padding: 25px; position: relative; }
         
-        /* Círculos laterales de corte de ticket */
         .ticket-stub::before, .ticket-stub::after { content: ''; position: absolute; width: 24px; height: 24px; background: var(--dark); border-radius: 50%; top: -12px; }
         .ticket-stub::before { left: -12px; }
         .ticket-stub::after { right: -12px; }
 
-        .header-gradient { background: linear-gradient(135deg, #000 0%, #222 100%); color: #fff; padding: 25px; text-align: center; border-bottom: 4px solid var(--accent); }
-        .status-pill { background: #e8f5e9; color: #1b5e20; padding: 6px 16px; border-radius: 50px; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; display: inline-flex; align-items: center; gap: 6px; }
+        .header-unac { background: #000; color: #fff; padding: 25px; text-align: center; }
         
-        .data-label { font-size: 9px; color: #888; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
-        .data-value { font-size: 13px; color: #000; font-weight: 800; text-transform: uppercase; }
-        
-        .schedule-box { background: #f0f4f8; border-radius: 20px; padding: 15px; margin: 15px 0; border: 1px solid #dce3eb; }
+        .seat-badge { padding: 12px; border-radius: 20px; font-weight: 900; font-size: 14px; text-transform: uppercase; margin-bottom: 20px; display: flex; align-items: center; justify-content: center; gap: 8px; }
+        .seat-secure { background: #e8f5e9; color: #1b5e20; border: 1px solid #c8e6c9; }
+        .standing-only { background: #fff3e0; color: #e65100; border: 1px solid #ffe0b2; }
+
+        .data-grid { display: grid; grid-cols: 2; gap: 15px; text-align: left; margin-top: 10px; }
+        .data-item { display: flex; flex-direction: column; }
+        .data-label { font-size: 8px; font-weight: 800; color: #999; text-transform: uppercase; letter-spacing: 1px; }
+        .data-value { font-size: 12px; font-weight: 800; color: #000; text-transform: uppercase; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+        .scan-instruction { background: #f4f4f4; border-radius: 15px; padding: 12px; font-size: 9px; font-weight: 700; color: #666; line-height: 1.4; margin-top: 15px; border-left: 4px solid var(--accent); }
 
         .hidden-section { display: none !important; }
-        #globe-box { width: 100%; height: 220px; pointer-events: none; opacity: 0.4; }
+        #globe-box { width: 100%; height: 220px; pointer-events: none; opacity: 0.3; }
     </style>
 </head>
 <body>
 
     <!-- BLOQUEO DE SEGURIDAD -->
     <div id="blocking-overlay" class="fixed inset-0 bg-[#050505] z-[10000] flex flex-col items-center justify-center text-center p-6" style="display: none;">
-        <i class="fa-solid fa-shield-lock text-7xl text-red-600 mb-6 animate-pulse"></i>
-        <h2 class="text-3xl font-black text-white uppercase mb-2">Acceso No Autorizado</h2>
-        <p class="text-gray-500 text-sm max-w-xs mb-8">Debe validar su identidad en el Portal Principal de Movilidad antes de generar su pase.</p>
-        <a href="ticket.html" class="bg-white text-black font-black px-8 py-4 rounded-2xl text-xs uppercase tracking-widest hover:bg-yellow-500 transition-all">Regresar al Portal</a>
+        <i class="fa-solid fa-bus-simple text-7xl text-yellow-500 mb-6 animate-pulse"></i>
+        <h2 class="text-3xl font-black text-white uppercase mb-2 leading-none">Terminal<br>No Sincronizado</h2>
+        <p class="text-gray-500 text-sm max-w-xs mt-4 mb-8">Por seguridad, debe ingresar desde el Portal Principal de Movilidad.</p>
+        <a href="ticket.html" class="bg-yellow-500 text-black font-black px-10 py-4 rounded-full text-xs uppercase tracking-widest">Volver al Inicio</a>
     </div>
 
     <!-- CARGADOR -->
     <div id="scanning-overlay">
-        <div class="relative w-24 h-24 mb-6">
+        <div class="relative w-20 h-20 mb-6">
             <div class="absolute inset-0 border-4 border-yellow-500/10 rounded-full"></div>
             <div class="absolute inset-0 border-t-4 border-yellow-500 rounded-full animate-spin"></div>
         </div>
-        <p class="font-mono text-[10px] tracking-[4px] text-yellow-500 uppercase animate-pulse">Generando Pase Seguro...</p>
+        <p class="font-mono text-[9px] tracking-[4px] text-yellow-500 uppercase">Encriptando Pase Digital...</p>
     </div>
 
     <div class="main-wrapper">
         <header class="w-full max-w-5xl mx-auto p-6 flex justify-between items-center relative z-20">
-            <div class="flex items-center gap-4">
-                <img src="https://upload.wikimedia.org/wikipedia/commons/3/3a/UNAC_Logo.png" class="w-10 h-10 object-contain grayscale invert" alt="UNAC">
-                <div class="flex flex-col">
-                    <span class="text-[10px] font-black tracking-widest text-white uppercase">Transporte Universitario</span>
-                    <span class="text-[9px] text-yellow-500 font-bold uppercase italic">Terminal Digital</span>
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-yellow-500 rounded-xl flex items-center justify-center shadow-lg shadow-yellow-500/20">
+                    <i class="fa-solid fa-bus-simple text-black text-xl"></i>
+                </div>
+                <div class="flex flex-col uppercase">
+                    <span class="text-[11px] font-black tracking-widest text-white">RUTA VENTANILLA</span>
+                    <span class="text-[9px] text-yellow-500 font-bold">Turno Tarde</span>
                 </div>
             </div>
         </header>
@@ -91,14 +96,14 @@
             
             <!-- PASO 1: KEYPAD -->
             <div id="step-1" class="w-full max-w-sm animate-fade-up">
-                <div class="bg-black/60 border border-white/10 p-8 rounded-[40px] shadow-2xl backdrop-blur-xl border-t-yellow-500/50 border-t-4">
+                <div class="bg-white/5 border border-white/10 p-8 rounded-[40px] shadow-2xl backdrop-blur-xl">
                     <div class="text-center mb-8">
-                        <h3 class="text-[10px] font-bold text-yellow-500 tracking-[4px] uppercase mb-1">Confirmación de Identidad</h3>
-                        <p class="text-[11px] text-gray-400 font-medium">Re-ingrese su DNI para firmar el pase</p>
+                        <h3 class="text-[10px] font-bold text-gray-400 tracking-[3px] uppercase mb-1">Identificación Requerida</h3>
+                        <p class="text-[11px] text-white font-medium">Confirme su DNI para la cola</p>
                     </div>
 
                     <div class="mb-6">
-                        <input type="text" id="dniDisplay" class="w-full bg-white/5 border border-white/10 p-5 rounded-2xl text-center text-4xl font-black text-white tracking-[6px] outline-none" placeholder="••••••••" readonly>
+                        <input type="text" id="dniDisplay" class="w-full bg-black/50 border border-white/10 p-5 rounded-2xl text-center text-4xl font-black text-white tracking-[4px] outline-none" placeholder="••••••••" readonly>
                     </div>
 
                     <div class="grid grid-cols-3 gap-3 mb-6">
@@ -111,78 +116,68 @@
                         <button onclick="Core.pressKey('7')" class="keypad-btn">7</button>
                         <button onclick="Core.pressKey('8')" class="keypad-btn">8</button>
                         <button onclick="Core.pressKey('9')" class="keypad-btn">9</button>
-                        <button onclick="Core.pressKey('clear')" class="keypad-btn text-red-500"><i class="fa-solid fa-trash-can"></i></button>
+                        <button onclick="Core.pressKey('clear')" class="keypad-btn text-red-500"><i class="fa-solid fa-trash"></i></button>
                         <button onclick="Core.pressKey('0')" class="keypad-btn">0</button>
                         <button onclick="Core.pressKey('backspace')" class="keypad-btn text-yellow-500"><i class="fa-solid fa-delete-left"></i></button>
                     </div>
 
-                    <button onclick="Core.submitDni()" class="bg-yellow-500 text-black font-black p-5 rounded-2xl w-full uppercase text-xs tracking-widest shadow-2xl hover:scale-[1.02] active:scale-95 transition-all">OBTENER PASE DIGITAL</button>
+                    <button onclick="Core.submitDni()" class="bg-yellow-500 text-black font-black p-5 rounded-2xl w-full uppercase text-xs tracking-widest shadow-2xl transition-all active:scale-95">GENERAR PASE AHORA</button>
                 </div>
             </div>
 
-            <!-- PASO 2: TICKET PROFESIONAL DETALLADO -->
+            <!-- PASO 2: TICKET PROFESIONAL -->
             <div id="step-3" class="hidden-section w-full animate-fade-up">
                 <div class="ticket-container">
                     <div class="ticket-main">
-                        <div class="header-gradient">
-                            <img src="https://upload.wikimedia.org/wikipedia/commons/3/3a/UNAC_Logo.png" class="w-12 h-12 mx-auto mb-3 invert" alt="UNAC">
-                            <h2 class="text-lg font-black tracking-tighter leading-none">PASE DE MOVILIDAD OFICIAL</h2>
-                            <p class="text-[9px] font-bold text-yellow-500 mt-1 uppercase tracking-widest">Universidad Nacional del Callao</p>
+                        <div class="header-unac">
+                            <div class="flex items-center justify-center gap-3 mb-2">
+                                <i class="fa-solid fa-bus-simple text-yellow-500 text-xl"></i>
+                                <h2 class="text-lg font-black tracking-tighter uppercase">Pase Digital</h2>
+                            </div>
+                            <p class="text-[9px] font-bold text-gray-500 uppercase tracking-[4px]">Universidad Nacional del Callao</p>
                         </div>
                         
-                        <div class="p-6">
-                            <div class="flex justify-center mb-6">
-                                <div class="status-pill">
-                                    <i class="fa-solid fa-circle-check"></i> Registro Validado
+                        <div class="px-8 pb-8 pt-4">
+                            <!-- BADGE DE ASIENTO DINÁMICO -->
+                            <div id="seat-badge-div" class="seat-badge">
+                                <i id="seat-icon"></i> <span id="seat-text">---</span>
+                            </div>
+
+                            <div class="data-grid">
+                                <div class="data-item col-span-2 border-b pb-2 mb-2">
+                                    <span class="data-label">Nombre del Estudiante</span>
+                                    <span id="t-nom" class="data-value">---</span>
+                                </div>
+                                <div class="data-item border-r pr-2">
+                                    <span class="data-label">Documento</span>
+                                    <span id="t-dni" class="data-value">---</span>
+                                </div>
+                                <div class="data-item pl-2">
+                                    <span class="data-label">Facultad</span>
+                                    <span id="t-fac" class="data-value">---</span>
+                                </div>
+                                <div class="data-item mt-2 col-span-2">
+                                    <span class="data-label">Hora de Registro</span>
+                                    <span id="t-hora" class="data-value text-blue-600">---</span>
                                 </div>
                             </div>
 
-                            <div class="grid grid-cols-2 gap-y-5">
-                                <div class="col-span-2">
-                                    <p class="data-label">Pasajero Autorizado</p>
-                                    <p id="t-nom" class="data-value text-base">---</p>
-                                </div>
-                                <div>
-                                    <p class="data-label">Documento DNI</p>
-                                    <p id="t-dni" class="data-value">---</p>
-                                </div>
-                                <div>
-                                    <p class="data-label">Hora Emisión</p>
-                                    <p id="t-hora" class="data-value text-blue-700">---</p>
-                                </div>
-                                <div class="col-span-2">
-                                    <p class="data-label">Facultad</p>
-                                    <p id="t-fac" class="data-value">---</p>
-                                </div>
-                            </div>
-
-                            <div class="schedule-box flex items-center justify-between">
-                                <div>
-                                    <p class="text-[8px] font-bold text-gray-500 uppercase">Ruta Activa</p>
-                                    <p class="text-[12px] font-black text-blue-900 uppercase">UNAC ➔ VENTANILLA</p>
-                                </div>
-                                <div class="text-right">
-                                    <p class="text-[8px] font-bold text-gray-500 uppercase">Salida</p>
-                                    <p class="text-[12px] font-black text-red-600 uppercase">18:00 PM</p>
-                                </div>
+                            <div class="scan-instruction">
+                                <i class="fa-solid fa-circle-info mr-1 text-yellow-600"></i>
+                                IMPORTANTE: Presente este código QR al delegado de turno para el escaneo de abordaje. El uso es personal e intransferible.
                             </div>
                         </div>
                     </div>
 
                     <div class="ticket-stub text-center">
-                        <div id="qrcode-vip" class="flex justify-center mb-4 bg-white p-2 rounded-xl inline-block mx-auto border"></div>
-                        <p class="text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-1">Código de Verificación Digital</p>
-                        <p class="text-[10px] font-mono text-gray-800" id="t-hash">---</p>
-                        
-                        <div class="mt-6 pt-4 border-t border-gray-200">
-                            <p class="text-[8px] text-gray-400 italic">Este pase es personal e intransferible. Debe presentarse junto con el carné universitario al momento del abordaje.</p>
-                        </div>
+                        <div id="qrcode-vip" class="inline-block p-4 bg-white border-2 border-gray-100 rounded-3xl mb-4"></div>
+                        <p class="text-[9px] font-black text-gray-400 uppercase tracking-[3px]">Salida: 18:00 PM - Ruta Ventanilla</p>
                     </div>
                 </div>
 
-                <div class="text-center mt-8">
-                    <button onclick="location.reload()" class="text-white/40 text-[10px] font-bold uppercase tracking-[3px] hover:text-white transition-all">
-                        <i class="fa-solid fa-power-off mr-2"></i> Cerrar Sesión Segura
+                <div class="text-center mt-10">
+                    <button onclick="location.reload()" class="text-gray-500 text-[10px] font-bold uppercase tracking-[2px] border-b border-gray-800 pb-1">
+                        <i class="fa-solid fa-power-off mr-2"></i> Finalizar Sesión
                     </button>
                 </div>
             </div>
@@ -213,15 +208,11 @@
             },
 
             checkSecurity: function() {
-                const isAuthorized = sessionStorage.getItem('valid_session');
-                const overlay = document.getElementById('blocking-overlay');
-
-                if (isAuthorized !== 'true') {
-                    overlay.style.display = 'flex';
+                if (sessionStorage.getItem('valid_session') !== 'true') {
+                    document.getElementById('blocking-overlay').style.display = 'flex';
                 }
-
                 db.ref('sistema/config/tarde_activo').on('value', snap => {
-                    if(snap.val() === false) overlay.style.display = 'flex';
+                    if(snap.val() === false) document.getElementById('blocking-overlay').style.display = 'flex';
                 });
             },
 
@@ -233,15 +224,14 @@
             },
 
             submitDni: async function() {
-                if(typedDni.length !== 8) return Swal.fire('DNI Incompleto', 'Debe ingresar 8 dígitos', 'warning');
-                const overlay = document.getElementById('scanning-overlay');
-                overlay.style.display = 'flex';
+                if(typedDni.length !== 8) return Swal.fire('DNI Requerido', 'Ingrese los 8 dígitos', 'warning');
+                document.getElementById('scanning-overlay').style.display = 'flex';
                 
                 try {
                     const aluSnap = await db.ref('alumnos/' + typedDni).once('value');
                     if(!aluSnap.exists()) {
-                        overlay.style.display = 'none';
-                        return Swal.fire('Error', 'DNI no encontrado en padrón', 'error');
+                        document.getElementById('scanning-overlay').style.display = 'none';
+                        return Swal.fire('No Autorizado', 'DNI no encontrado en el padrón', 'error');
                     }
 
                     const alu = aluSnap.val();
@@ -252,17 +242,23 @@
                     if(snapT.exists()){
                         this.renderFinal(alu, typedDni, snapT.val());
                     } else {
-                        const data = { 
-                            nombre: alu.Estudiante, 
-                            facultad: alu.Facultad || 'UNAC', 
-                            hora: new Date().toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
-                        };
-                        await refTicket.set(data);
-                        this.renderFinal(alu, typedDni, data);
+                        // LÓGICA DE CONTADOR PARA ASIENTO
+                        db.ref(`sistema/viajes/${fecha}/tarde/contador`).transaction(c => (c || 0) + 1, (err, comm, snapCont) => {
+                            if(comm){
+                                const data = { 
+                                    nombre: alu.Estudiante, 
+                                    facultad: alu.Facultad || 'UNAC', 
+                                    orden: snapCont.val(),
+                                    hora: new Date().toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit' })
+                                };
+                                refTicket.set(data);
+                                this.renderFinal(alu, typedDni, data);
+                            }
+                        });
                     }
                 } catch (e) {
-                    overlay.style.display = 'none';
-                    Swal.fire('Error', 'Reintente la conexión', 'error');
+                    document.getElementById('scanning-overlay').style.display = 'none';
+                    Swal.fire('Error', 'Intente nuevamente', 'error');
                 }
             },
 
@@ -271,13 +267,27 @@
                 document.getElementById('t-dni').innerText = dni;
                 document.getElementById('t-fac').innerText = alu.Facultad || 'UNAC';
                 document.getElementById('t-hora').innerText = ticket.hora;
-                document.getElementById('t-hash').innerText = "UNAC-T-" + btoa(dni).substring(0, 8).toUpperCase();
                 
+                const badge = document.getElementById('seat-badge-div');
+                const icon = document.getElementById('seat-icon');
+                const text = document.getElementById('seat-text');
+
+                // LÓGICA DE ASIENTO VS PARADO
+                if(ticket.orden <= 40) {
+                    badge.className = "seat-badge seat-secure";
+                    icon.className = "fa-solid fa-couch";
+                    text.innerText = "Asiento Asegurado #" + ticket.orden;
+                } else {
+                    badge.className = "seat-badge standing-only";
+                    icon.className = "fa-solid fa-person-walking";
+                    text.innerText = "Viaje de Pie (Cola #" + ticket.orden + ")";
+                }
+
                 document.getElementById('qrcode-vip').innerHTML = "";
                 new QRCode(document.getElementById("qrcode-vip"), { 
-                    text: `SECURE_UNAC_T:${dni}:${ticket.hora}`, 
-                    width: 140, height: 140,
-                    correctLevel : QRCode.CorrectLevel.H
+                    text: `UNAC-T:${dni}:O${ticket.orden}`, 
+                    width: 150, height: 150,
+                    correctLevel : QRCode.Level.H
                 });
 
                 document.getElementById('scanning-overlay').style.display = 'none';
@@ -292,9 +302,7 @@
                 const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
                 renderer.setSize(container.clientWidth, container.clientHeight);
                 container.appendChild(renderer.domElement);
-                const geometry = new THREE.IcosahedronGeometry(20, 1);
-                const material = new THREE.MeshBasicMaterial({ color: 0xffc107, wireframe: true, transparent: true, opacity: 0.1 });
-                const sphere = new THREE.Mesh(geometry, material);
+                const sphere = new THREE.Mesh(new THREE.IcosahedronGeometry(22, 1), new THREE.MeshBasicMaterial({ color: 0xffc107, wireframe: true, transparent: true, opacity: 0.1 }));
                 scene.add(sphere); camera.position.z = 50;
                 function animate() { requestAnimationFrame(animate); sphere.rotation.y += 0.005; renderer.render(scene, camera); }
                 animate();
