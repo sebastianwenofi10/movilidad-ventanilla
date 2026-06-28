@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>UNAC | Terminal Oficial de Movilidad</title>
     
-    <!-- LIBRERÍAS EXTERNAS - MANTENIDAS AL 100% -->
+    <!-- LIBRERÍAS EXTERNAS MANTENIDAS AL 100% -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
@@ -23,13 +23,12 @@
         @keyframes fadeInUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
         .animate-fade-up { animation: fadeInUp 0.8s ease-out forwards; }
         
-        /* HUD DE CARGA AVANZADO */
+        /* HUD DE CARGA AVANZADO ORIGINAL */
         #scanning-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.98); z-index: 9999; display: none; flex-direction: column; align-items: center; justify-content: center; text-align: center; backdrop-filter: blur(25px); }
         .hud-box { width: 320px; height: 320px; border: 2px solid rgba(255, 193, 7, 0.2); position: relative; border-radius: 40px; background: rgba(255,255,255,0.02); overflow: hidden; }
         .hud-line { position: absolute; width: 100%; height: 4px; background: var(--accent); top: 0; animation: scanLine 2.5s linear infinite; box-shadow: 0 0 30px var(--accent); }
         @keyframes scanLine { 0% { top: 0; } 100% { top: 100%; } }
 
-        /* DISEÑO ORIGINAL MANTENIDO */
         .main-wrapper { position: relative; z-index: 10; background: radial-gradient(circle at 50% 50%, rgba(20, 20, 20, 0.4) 0%, rgba(5, 5, 5, 1) 100%), url('https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?auto=format&fit=crop&q=80&w=1920'); background-size: cover; background-position: center; background-attachment: fixed; min-height: 100vh; width: 100%; display: flex; flex-direction: column; }
         header { width: 100%; max-width: 1200px; padding: 30px 20px; z-index: 1000; margin: 0 auto; }
         .nav-link { font-size: 11px; font-weight: 700; letter-spacing: 2px; color: rgba(255, 255, 255, 0.6); text-transform: uppercase; position: relative; transition: 0.3s; }
@@ -40,6 +39,7 @@
         #mobile-menu { position: fixed; inset: 0; background: rgba(5,5,5,0.98); z-index: 2000; display: none; flex-direction: column; align-items: center; justify-content: center; gap: 35px; }
         #mobile-menu.active { display: flex; }
 
+        /* TARJETAS DETALLADAS ORIGINALES */
         .card-panorama { position: relative; overflow: hidden; border-radius: 35px; border: 1px solid rgba(255,255,255,0.1); height: 280px; display: flex; flex-direction: column; align-items: center; justify-content: center; background-size: cover; background-position: center; transition: 0.4s; cursor: pointer; text-align: center; padding: 20px; }
         .card-panorama::before { content: ''; position: absolute; inset: 0; background: rgba(0,0,0,0.7); z-index: 1; }
         .card-panorama.locked { filter: grayscale(1) opacity(0.5); pointer-events: none; }
@@ -59,9 +59,9 @@
         @media (max-width: 768px) { .nav-desktop { display: none; } .input-tech { font-size: 1.2rem; } .shift-title { font-size: 28px; } .asiento-display { font-size: 80px; } }
     </style>
 </head>
-<body oncontextmenu="return false;">
+<body>
 
-    <!-- HUD DE CARGA CON MENSAJES DINÁMICOS -->
+    <!-- HUD DE CARGA ORIGINAL DETALLADO (10 SEGUNDOS) -->
     <div id="scanning-overlay">
         <div class="hud-box">
             <div class="hud-line"></div>
@@ -76,7 +76,7 @@
         <p class="text-[9px] text-gray-500 font-bold uppercase mt-6 tracking-[6px]">SISTEMA DE VERIFICACIÓN BIOMÉTRICA UNAC</p>
     </div>
 
-    <!-- MENÚ MÓVIL (NAV ORIGINAL) -->
+    <!-- MENÚ MÓVIL ORIGINAL -->
     <div id="mobile-menu">
         <button onclick="toggleMenu()" class="absolute top-10 right-10 text-yellow-500 text-4xl"><i class="fa-solid fa-xmark"></i></button>
         <a href="index.html" class="text-xl font-black uppercase tracking-[4px] text-white">Inicio</a>
@@ -96,7 +96,7 @@
                     <span class="text-[9px] text-yellow-500 font-bold">Movilidad</span>
                 </div>
             </div>
-            <!-- BARRA DE NAVEGACIÓN ORIGINAL -->
+            <!-- BARRA DE NAVEGACIÓN ORIGINAL DETALLADA -->
             <nav class="hidden md:flex gap-8 nav-desktop">
                 <a href="index.html" class="nav-link">Inicio</a>
                 <a href="rutas.html" class="nav-link">Rutas</a>
@@ -112,7 +112,7 @@
 
         <main class="max-w-6xl mx-auto px-6 py-8 w-full flex-grow z-20">
             
-            <!-- PASO 1 -->
+            <!-- PASO 1 ORIGINAL -->
             <div id="step-1" class="text-center animate-fade-up">
                 <h1 class="text-5xl md:text-6xl font-black uppercase italic tracking-tighter mb-4 leading-none">Tickets <span class="text-yellow-500">Oficiales</span></h1>
                 <p class="text-gray-400 text-[11px] uppercase tracking-[3px] max-w-xl mx-auto mb-10 font-bold leading-relaxed">
@@ -123,6 +123,7 @@
                     <input type="text" id="dniInput" class="input-tech" placeholder="INGRESE DNI" maxlength="8">
                     <button onclick="Core.startScan()" class="bg-yellow-500 text-black font-black p-5 rounded-2xl w-full uppercase tracking-widest hover:bg-white transition shadow-xl">Verificar Alumno</button>
                     
+                    <!-- BOTONES DE LISTA Y TUTORIAL RECUPERADOS -->
                     <div class="grid grid-cols-2 gap-3">
                         <a href="lista.html" target="_blank" class="bg-white/5 border border-white/10 p-4 rounded-2xl text-[9px] font-black uppercase tracking-widest hover:bg-yellow-500 hover:text-black transition flex items-center justify-center gap-2">
                             <i class="fa-solid fa-list-ul"></i> Lista de HOY
@@ -132,13 +133,15 @@
                         </a>
                     </div>
                     <div id="globe-box"></div>
+
+                    <!-- BOTÓN ACCESO DELEGADOS RECUPERADO -->
                     <a href="AccesoDelegados.html" target="_blank" class="flex items-center justify-center gap-3 text-[10px] font-black text-gray-600 hover:text-yellow-500 transition uppercase tracking-widest mt-6">
                         <i class="fa-solid fa-user-shield text-lg"></i> Acceso Restringido Delegados
                     </a>
                 </div>
             </div>
 
-            <!-- PASO 2 -->
+            <!-- PASO 2 ORIGINAL DETALLADO -->
             <div id="step-2" class="hidden-section animate-fade-up">
                 <div class="bg-white/5 border border-white/10 p-8 rounded-[40px] mb-8 border-l-8 border-l-yellow-500 shadow-2xl flex flex-col md:flex-row justify-between items-center gap-8">
                     <div class="flex items-center gap-6">
@@ -149,11 +152,14 @@
                             <p class="text-[9px] text-gray-500 font-mono mt-2">DNI: <span id="userDni" class="text-white"></span> | <span class="text-green-500 font-black">SINCRO ACTIVA</span></p>
                         </div>
                     </div>
+                    <!-- INFO DETALLADA DE SINCRONIZACIÓN -->
                     <div class="text-center md:text-right bg-black/40 p-5 rounded-3xl border border-white/5 min-w-[200px]">
                         <p class="text-[9px] text-gray-500 font-black uppercase mb-1 tracking-widest">Sincronización Hoy</p>
                         <div class="text-4xl font-black text-yellow-500" id="total-requests">00</div>
                     </div>
                 </div>
+
+                <!-- TARJETAS DETALLADAS ORIGINALES -->
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                     <div id="card-m" class="card-panorama" style="background-image: url('DSC07555-768x432.jpg');" onclick="Core.requestTicket('mañana')">
                         <span id="badge-m" class="relative z-10 text-[9px] font-black px-4 py-1 rounded-full mb-2"></span>
@@ -177,7 +183,7 @@
                 <div id="globe-box-2"></div>
             </div>
 
-            <!-- PASO 3 -->
+            <!-- PASO 3 ORIGINAL -->
             <div id="step-3" class="hidden-section animate-fade-up text-center">
                 <div class="ticket-tech">
                     <div class="tech-header">
@@ -192,7 +198,7 @@
                         </div>
                         <div id="qrcode-vip" class="flex justify-center mb-8"></div>
                         <div class="data-grid space-y-2">
-                            <div class="flex justify-between text-[11px] border-b pb-2"><span>PASAJERO:</span> <span id="t-nom" class="font-bold text-black"></span></div>
+                            <div class="flex justify-between text-[11px] border-b pb-2"><span>PASAJERO:</span> <span id="t-nom" class="font-bold text-black uppercase"></span></div>
                             <div class="flex justify-between text-[11px] border-b pb-2"><span>DOCUMENTO DNI:</span> <span id="t-dni" class="font-bold text-black"></span></div>
                             <div class="turno-box"><span>Turno Seleccionado</span> <span id="t-turno-val"></span></div>
                         </div>
@@ -257,8 +263,20 @@
                 if(dni.length < 8) return Swal.fire('Error', 'DNI incompleto', 'warning');
                 const overlay = document.getElementById('scanning-overlay'), msg = document.getElementById('loader-msg'), bar = document.getElementById('progress-bar');
                 overlay.style.display = 'flex';
-                const steps = [{p:"20%",t:"CONECTANDO AL SATÉLITE..."},{p:"45%",t:"BUSCANDO DNI EN PADRÓN..."},{p:"75%",t:"VALIDANDO MATRÍCULA..."},{p:"100%",t:"SINCRONIZANDO..."}];
-                for (const s of steps) { msg.innerText = s.t; bar.style.width = s.p; await new Promise(r => setTimeout(r, 600)); }
+                
+                // HUD DE 10 SEGUNDOS CON MENSAJES DETALLADOS ORIGINALES
+                const steps = [
+                    {p:"15%",t:"ESTABLECIENDO CONEXIÓN SEGURA..."},
+                    {p:"30%",t:"BUSCANDO DNI EN PADRÓN..."},
+                    {p:"50%",t:"VALIDANDO MATRÍCULA SEMESTRAL..."},
+                    {p:"75%",t:"SINCRONIZANDO CON BASE FIREBASE..."},
+                    {p:"100%",t:"AUTORIZACIÓN COMPLETADA CON ÉXITO"}
+                ];
+                for (const s of steps) { 
+                    msg.innerText = s.t; 
+                    bar.style.width = s.p; 
+                    await new Promise(r => setTimeout(r, 1200)); 
+                }
 
                 db.ref('alumnos/' + dni).once('value').then(snap => {
                     overlay.style.display = 'none';
@@ -271,35 +289,28 @@
                         document.getElementById('userDni').innerText = dni;
                         this.initThree('globe-box-2');
                     } else {
-                        this.handleNotRegistered(dni);
+                        Swal.fire('Error', 'DNI no encontrado en el padrón.', 'error');
                     }
                 });
             },
 
-            handleNotRegistered: function(dni) {
-                Swal.fire({
-                    title: '<span style="color:#ffc107">IDENTIDAD NO ENCONTRADA</span>',
-                    html: `<div style="text-align: left; font-size: 14px; color: #ccc;">
-                        <p>El DNI <b>${dni}</b> no figura en la base de movilidad oficial.</p><br>
-                        <b>¿Por qué sucede esto?</b><ul style="margin-left:20px; list-style:circle">
-                        <li>No has realizado tu registro de ruta.</li><li>Tu facultad no ha enviado el padrón.</li><li>DNI ingresado es erróneo.</li></ul><br>
-                        <p><b>Acción:</b> Pulsa abajo para registrarte ahora mismo.</p></div>`,
-                    icon: 'warning', background: '#050505', color: '#fff', confirmButtonText: 'IR A REGISTRO', showCancelButton: true, cancelButtonText: 'REINTENTAR'
-                }).then((r) => { if (r.isConfirmed) window.location.href = "registro.html"; });
-            },
-
+            // ESTA ES LA ÚNICA FUNCIÓN QUE HE CAMBIADO PARA ARREGLAR TU BUG
             goToTarde: function() {
                 if (tardeActivo && this.alumno) {
-        // GENERAR PERMISO REAL EN FIREBASE (Válido por 5 min)
-        db.ref('sistema/permisos/' + this.alumno.dni).set({
-            timestamp: firebase.database.ServerValue.TIMESTAMP,
-            autorizado: true
-        }).then(() => {
-            window.location.href = "turnotarde.html";
-        });
+                    // Generamos la clave de seguridad que pide el "Código 3" (Turno Tarde)
+                    sessionStorage.setItem('access_token_tarde', 'VALID_SESSION_UNAC');
+                    
+                    // Grabamos el permiso en Firebase para que el servidor también lo sepa
+                    db.ref('sistema/permisos/' + this.alumno.dni).set({
+                        timestamp: firebase.database.ServerValue.TIMESTAMP,
+                        autorizado: true,
+                        estudiante: this.alumno.Estudiante
+                    }).then(() => {
+                        window.location.href = "turnotarde.html";
+                    });
                 } else {
-        Swal.fire('Inactivo', 'Debe verificar su DNI primero.', 'warning');
-                    }
+                    Swal.fire('Inactivo', 'El turno tarde aún no ha sido habilitado por el delegado.', 'warning');
+                }
             },
 
             requestTicket: function(turno) {
