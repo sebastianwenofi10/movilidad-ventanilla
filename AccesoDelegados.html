@@ -34,7 +34,6 @@
         .active-6pm { background: #0284c7 !important; color: white !important; border-color: #38bdf8 !important; }
         .active-10pm { background: #7c3aed !important; color: white !important; border-color: #a78bfa !important; }
 
-        /* VISTA DE LISTA PANTALLA COMPLETA */
         #master-list-view { position: fixed; inset: 0; background: #050505; z-index: 1000; display: none; flex-direction: column; }
         .student-card { border-left: 5px solid transparent; transition: 0.3s; }
         .status-red { border-color: #ef4444; background: rgba(239, 68, 68, 0.1); }
@@ -43,7 +42,7 @@
         .badge-stand { background: #4b5563; color: white; padding: 2px 8px; border-radius: 5px; font-size: 8px; font-weight: 900; }
     </style>
 </head>
-<body oncontextmenu="return false;">
+<body>
 
     <div id="flash-notif">
         <i id="flash-icon" class="fa-solid fa-circle-check text-7xl mb-4"></i><br>
@@ -51,7 +50,7 @@
         <p id="flash-subtext" class="text-sm mt-2 font-bold opacity-80 uppercase tracking-widest"></p>
     </div>
 
-    <!-- PESTAÑA DE LISTA MAESTRA -->
+    <!-- VISTA DE LISTA MAESTRA -->
     <div id="master-list-view">
         <header class="p-6 border-b border-white/10 flex justify-between items-center bg-black">
             <div>
@@ -71,7 +70,6 @@
         </div>
     </div>
 
-    <!-- APP PRINCIPAL -->
     <div id="main-app" class="flex flex-col items-center w-full">
         <header class="w-full max-w-lg p-6 flex justify-between items-center">
             <div class="flex items-center gap-3">
@@ -84,7 +82,6 @@
             <button onclick="location.reload()" class="text-[10px] font-black text-gray-500 uppercase">Salir <i class="fa-solid fa-xmark"></i></button>
         </header>
 
-        <!-- LOGIN -->
         <div id="login-container" class="w-full max-w-sm px-6 mt-10 text-center">
             <div class="mb-8">
                 <h1 class="text-3xl font-black uppercase italic tracking-tighter">Acceso <span class="text-yellow-500">Privado</span></h1>
@@ -99,7 +96,6 @@
             </div>
         </div>
 
-        <!-- PANEL SCANNER -->
         <div id="scanner-container" class="w-full max-w-lg px-4 py-4 hidden">
             <div class="flex justify-between items-center mb-6">
                 <h2 class="text-xl font-black uppercase">Control <span class="text-yellow-500">Ruta</span></h2>
@@ -204,14 +200,7 @@
                     }
                 });
 
-                // ORDENAMIENTO PRIORIZADO: ASIENTOS (ORDEN <= 40) PRIMERO
-                combined.sort((a, b) => {
-                    const aHasSeat = a.orden <= 40;
-                    const bHasSeat = b.orden <= 40;
-                    if (aHasSeat && !bHasSeat) return -1;
-                    if (!aHasSeat && bHasSeat) return 1;
-                    return a.orden - b.orden;
-                });
+                combined.sort((a, b) => a.orden - b.orden);
 
                 document.getElementById('contador-sol').innerText = combined.length;
                 document.getElementById('contador-glo').innerText = Object.keys(asistencias).length;
@@ -228,7 +217,7 @@
             container.innerHTML = students.map(s => {
                 const hasSeat = s.orden <= 40;
                 return `
-                    <div class="p-4 rounded-xl student-card ${s.verificado ? 'status-green' : 'status-red'} flex justify-between items-center shadow-lg animate-fade-in">
+                    <div class="p-4 rounded-xl student-card ${s.verificado ? 'status-green' : 'status-red'} flex justify-between items-center shadow-lg">
                         <div>
                             <div class="flex items-center gap-2">
                                 <span class="${hasSeat ? 'badge-seat' : 'badge-stand'}">${hasSeat ? 'ASIENTO' : 'PARADO'}</span>
@@ -249,23 +238,45 @@
             }).join('');
         }
 
+        // --- CORRECCIÓN CLAVE AQUÍ ---
         async function onScanSuccess(text) {
-            const parts = text.split('-'); 
-            if(parts.length < 4) return notificarFlash("QR NO VÁLIDO", "error", "Formato desconocido");
+            let dniScanned = "";
+            let tKey = "";
 
-            const dniScanned = parts[2];
+            // Lógica para detectar formato profesional con ":" (Código 3) o antiguo con "-" (Código 1)
+            if (text.includes(':')) {
+                const parts = text.split(':');
+                // Formato: UNAC-T:DNI:O:ORDEN:F:FECHA
+                dniScanned = parts[1];
+                tKey = parts[0].includes('-T') ? 'tarde' : (parts[0].includes('-N') ? 'noche' : 'mañana');
+            } else if (text.includes('-')) {
+                const parts = text.split('-');
+                // Formato: UNAC-V-DNI-TURNO-ORDEN
+                dniScanned = parts[2];
+                tKey = parts[3].toLowerCase() === 't' ? 'tarde' : (parts[3].toLowerCase() === 'n' ? 'noche' : 'mañana');
+            } else {
+                return notificarFlash("QR INVÁLIDO", "error", "Formato no reconocido");
+            }
+
+            if(!dniScanned || dniScanned.length < 8) return notificarFlash("ERROR DNI", "error", "No se pudo extraer DNI");
+
             const fechaHoy = new Date().toISOString().split('T')[0];
-            const tKey = parts[3].toLowerCase() === 't' ? 'tarde' : (parts[3].toLowerCase() === 'n' ? 'noche' : 'mañana');
 
+            // 1. Verificar si ya subió
             const snapAsis = await db.ref(`sistema/asistencias/${fechaHoy}/${dniScanned}`).once('value');
-            if(snapAsis.exists()) return notificarFlash("YA ESCANEADO", "error", "Este alumno ya subió");
+            if(snapAsis.exists()) return notificarFlash("YA ESCANEADO", "error", "El alumno ya abordó");
 
+            // 2. Verificar existencia del ticket en Firebase
             const snapTicket = await db.ref(`sistema/viajes/${fechaHoy}/${tKey}/registros/${dniScanned}`).once('value');
-            if(!snapTicket.exists()) return notificarFlash("TICKET CADUCADO", "error", "No corresponde a hoy");
+            if(!snapTicket.exists()) return notificarFlash("SIN TICKET", "error", "No tiene ticket para este turno");
 
+            // 3. Registrar asistencia
             db.ref(`sistema/asistencias/${fechaHoy}/${dniScanned}`).set({
-                nombre: snapTicket.val().nombre, hora: new Date().toLocaleTimeString(), delegado: delegadoActivo
+                nombre: snapTicket.val().nombre, 
+                hora: new Date().toLocaleTimeString(), 
+                delegado: delegadoActivo
             });
+
             soundOk.play();
             notificarFlash("VERIFICADO ✅", "success", snapTicket.val().nombre);
         }
@@ -275,14 +286,14 @@
         function notificarFlash(titulo, tipo, sub) {
             const f = document.getElementById('flash-notif'), t = document.getElementById('flash-text'), st = document.getElementById('flash-subtext'), i = document.getElementById('flash-icon');
             t.innerText = titulo; st.innerText = sub;
-            f.className = tipo === "success" ? "fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 notif-success" : "fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 notif-error";
+            f.className = tipo === "success" ? "fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 notif-success glass" : "fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 notif-error glass";
             i.className = tipo === "success" ? "fa-solid fa-circle-check text-7xl mb-4" : "fa-solid fa-circle-xmark text-7xl mb-4";
             if(tipo === "error") soundError.play();
             f.style.display = 'block'; setTimeout(() => f.style.display = 'none', 2000);
         }
 
         async function reiniciarFirebase() {
-            if(confirm("¿BORRAR TODO HOY?")) {
+            if(confirm("¿Desea reiniciar todo el sistema de hoy?")) {
                 const fecha = new Date().toISOString().split('T')[0];
                 await Promise.all([
                     db.ref(`sistema/viajes/${fecha}`).remove(),
