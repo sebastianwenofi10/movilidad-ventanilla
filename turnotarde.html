@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>UNAC | Pase Digital Oficial</title>
     
-    <!-- LIBRERÍAS MANTENIDAS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
@@ -13,7 +12,6 @@
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;800;900&family=Share+Tech+Mono&family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
 
-    <!-- FIREBASE COMPAT -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
 
@@ -57,7 +55,6 @@
 </head>
 <body>
 
-    <!-- BLOQUEO DE SEGURIDAD (SHIELD) -->
     <div id="blocking-overlay" class="fixed inset-0 bg-[#050505] z-[10000] flex flex-col items-center justify-center text-center p-6" style="display: none;">
         <i class="fa-solid fa-shield-halved text-7xl text-red-600 mb-6 animate-pulse"></i>
         <h2 class="text-3xl font-black text-white uppercase tracking-tighter">Sincronización Expirada</h2>
@@ -65,7 +62,6 @@
         <a href="ticket.html" class="bg-white text-black font-black px-10 py-4 rounded-2xl text-xs uppercase tracking-widest">Regresar al Portal</a>
     </div>
 
-    <!-- CARGADOR -->
     <div id="scanning-overlay">
         <div class="relative w-20 h-20 mb-6">
             <div class="absolute inset-0 border-4 border-white/5 rounded-full"></div>
@@ -88,13 +84,11 @@
                     <span class="text-[9px] text-yellow-500 font-bold uppercase mt-1">Ruta Ventanilla - Tarde</span>
                 </div>
             </div>
-            <!-- Contador visual de expiración (opcional) -->
             <div id="timer-display" class="text-[10px] font-black bg-red-600/20 text-red-500 px-3 py-1 rounded-full border border-red-500/50 uppercase">Sesión Activa</div>
         </header>
 
         <main class="flex-grow flex flex-col items-center justify-center px-6 pb-12 relative z-20">
             
-            <!-- PASO 1: KEYPAD -->
             <div id="step-1" class="w-full max-w-sm animate-fade-up">
                 <div class="bg-white/5 border border-white/10 p-8 rounded-[45px] shadow-2xl backdrop-blur-xl">
                     <div class="text-center mb-10">
@@ -126,7 +120,6 @@
                 </div>
             </div>
 
-            <!-- PASO 2: TICKET FINAL -->
             <div id="step-3" class="hidden-section w-full animate-fade-up">
                 <div class="ticket-container">
                     <div class="ticket-top">
@@ -209,30 +202,38 @@
             init: function() { 
                 this.checkSecurity(); 
                 this.initThree(); 
-                // Revisión constante cada 5 segundos
-                setInterval(() => this.checkSecurity(), 5000);
+                // Revisión prudente cada 10 segundos
+                setInterval(() => this.checkSecurity(), 10000);
             },
 
-            checkSecurity: function() {
+            checkSecurity: async function() {
                 const isValid = sessionStorage.getItem('valid_session');
                 const authTime = sessionStorage.getItem('auth_timestamp');
                 const currentTime = Date.now();
                 const overlay = document.getElementById('blocking-overlay');
 
-                // LÓGICA DE 1 MINUTO (60000 ms)
+                // LÓGICA DE 1 MINUTO
                 if (isValid !== 'true' || !authTime || (currentTime - authTime > 60000)) {
-                    sessionStorage.clear(); // Limpiar rastro
+                    sessionStorage.clear();
                     overlay.style.display = 'flex';
                     return;
                 }
 
-                // Listener para el switch del delegado (Sincronización en tiempo real)
-                db.ref('sistema/config/tarde_activo').on('value', snap => {
+                // SI EL USUARIO YA TIENE EL TICKET EN PANTALLA, NO VOLVEMOS A CONSULTAR
+                if (!document.getElementById('step-3').classList.contains('hidden-section')) {
+                    return; 
+                }
+
+                try {
+                    // CAMBIO CLAVE: .once('value') en lugar de .on() para no dejar la conexión colgada
+                    const snap = await db.ref('sistema/config/tarde_activo').once('value');
                     if(snap.val() === false) {
                         overlay.style.display = 'flex';
                         document.getElementById('block-reason').innerText = "El delegado ha cerrado el sistema de sincronización tarde.";
                     }
-                });
+                } catch(e) {
+                    console.log("Error de red temporal o límite excedido momentáneamente.");
+                }
             },
 
             pressKey: function(v) {
@@ -247,6 +248,9 @@
                 document.getElementById('scanning-overlay').style.display = 'flex';
                 
                 try {
+                    // Nos aseguramos de estar conectados antes de la transacción
+                    db.goOnline();
+
                     const aluSnap = await db.ref('alumnos/' + typedDni).once('value');
                     if(!aluSnap.exists()) {
                         document.getElementById('scanning-overlay').style.display = 'none';
@@ -278,7 +282,7 @@
                     }
                 } catch (e) {
                     document.getElementById('scanning-overlay').style.display = 'none';
-                    Swal.fire('Error', 'Intente nuevamente', 'error');
+                    Swal.fire('Error de Red', 'La cola está llena o tienes problemas de conexión. Reintenta.', 'error');
                 }
             },
 
@@ -315,11 +319,16 @@
                     document.getElementById('step-1').classList.add('hidden-section');
                     document.getElementById('step-3').classList.remove('hidden-section');
                     window.scrollTo({ top: 0, behavior: 'smooth' });
+                    
+                    // TRUCO MAESTRO: Desconectar al usuario de Firebase inmediatamente después de procesar su pase.
+                    // Su ticket y su QR ya están renderizados en pantalla localmente. Ya no necesita ocupar espacio.
+                    db.goOffline();
                 }, 800);
             },
 
             initThree: function() {
                 const container = document.getElementById('globe-area');
+                if(!container) return;
                 const scene = new THREE.Scene(), camera = new THREE.PerspectiveCamera(75, container.clientWidth/container.clientHeight, 0.1, 1000);
                 const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
                 renderer.setSize(container.clientWidth, container.clientHeight);
