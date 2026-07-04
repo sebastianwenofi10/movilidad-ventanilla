@@ -40,6 +40,8 @@
         .status-green { border-color: #10b981; background: rgba(16, 185, 129, 0.1); }
         .badge-seat { background: #ffc107; color: black; padding: 2px 8px; border-radius: 5px; font-size: 8px; font-weight: 900; }
         .badge-stand { background: #4b5563; color: white; padding: 2px 8px; border-radius: 5px; font-size: 8px; font-weight: 900; }
+
+        .history-item { background: rgba(255,255,255,0.02); border-bottom: 1px solid rgba(255,255,255,0.05); padding: 8px 12px; font-size: 10px; display: flex; justify-content: space-between; align-items: center; }
     </style>
 </head>
 <body>
@@ -60,11 +62,6 @@
             <button onclick="toggleLista(false)" class="bg-white/10 w-12 h-12 rounded-full flex items-center justify-center text-white text-2xl hover:bg-red-600 transition">&times;</button>
         </header>
         
-        <div class="p-4 bg-white/5 flex gap-4 text-[9px] font-black uppercase overflow-x-auto">
-            <div class="flex items-center gap-2 text-green-500"><div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div> ESCANEADOS</div>
-            <div class="flex items-center gap-2 text-red-500"><div class="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div> POR ESCANEAR</div>
-        </div>
-
         <div id="contenedor-lista-maestra" class="flex-grow overflow-y-auto p-4 space-y-3">
             <p class="text-center text-gray-600 py-10 italic">Cargando base de datos...</p>
         </div>
@@ -79,7 +76,6 @@
                     <span class="text-[9px] text-yellow-500 font-bold">Delegados</span>
                 </div>
             </div>
-            <!-- MEJORADO: Botón Salir ahora limpia la sesión de verdad -->
             <button onclick="cerrarSesion()" class="text-[10px] font-black text-gray-500 uppercase">Salir <i class="fa-solid fa-xmark"></i></button>
         </header>
 
@@ -100,8 +96,8 @@
         <div id="scanner-container" class="w-full max-w-lg px-4 py-4 hidden">
             <div class="flex justify-between items-center mb-6">
                 <h2 class="text-xl font-black uppercase">Control <span class="text-yellow-500">Ruta</span></h2>
-                <button onclick="toggleLista(true)" class="bg-yellow-500 text-black text-[10px] font-black px-5 py-2.5 rounded-xl uppercase shadow-lg hover:bg-white transition-all">
-                    <i class="fa-solid fa-list-ul mr-2"></i> Ver Lista Maestra
+                <button onclick="toggleLista(true)" class="bg-yellow-500 text-black text-[10px] font-black px-5 py-2.5 rounded-xl uppercase shadow-lg">
+                    <i class="fa-solid fa-list-ul mr-2"></i> Lista Maestra
                 </button>
             </div>
 
@@ -122,9 +118,30 @@
                 </div>
             </div>
 
+            <!-- CUADRO DE REGISTROS RECIENTES -->
+            <div class="glass p-4 mb-6">
+                <div class="flex justify-between items-center mb-3">
+                    <span class="text-[10px] font-black uppercase text-yellow-500 italic">Últimos Abordados</span>
+                    <span class="text-[7px] text-blue-400 font-bold">VIVO</span>
+                </div>
+                <div id="historial-reciente" class="max-h-[140px] overflow-y-auto rounded-lg">
+                    <p class="text-center text-[10px] text-gray-600 py-4 italic">Sin registros nuevos...</p>
+                </div>
+            </div>
+
             <div class="grid grid-cols-2 gap-3 mb-6">
                 <button id="btn-tarde" onclick="toggleTurno('tarde')" class="btn-horario">Ticket 6:00 PM</button>
                 <button id="btn-noche" onclick="toggleTurno('noche')" class="btn-horario">Ticket 10:15 PM</button>
+            </div>
+
+            <!-- BOTONES SINCRONIZACIÓN EXCEL -->
+            <div class="grid grid-cols-1 gap-3 mb-4">
+                <button onclick="sincronizarConExcel()" class="w-full bg-green-700 text-white font-black py-4 rounded-xl uppercase text-[10px] border-2 border-green-500 shadow-lg">
+                    <i class="fa-solid fa-rotate mr-2"></i> 1. Sincronizar Firebase -> Excel
+                </button>
+                <button onclick="window.open('https://docs.google.com/spreadsheets/d/1exY-PubIH4ln9u9BpCVl5m92ZjD6s6DPKlwrYKZnQFo/edit?usp=sharing', '_blank')" class="w-full bg-blue-600 text-white font-black py-4 rounded-xl uppercase text-[10px] shadow-lg">
+                    <i class="fa-solid fa-file-excel mr-2"></i> 2. Ver Reporte en Tiempo Real
+                </button>
             </div>
 
             <div class="grid grid-cols-2 gap-3 mb-10">
@@ -135,8 +152,8 @@
     </div>
 
     <script>
-        // --- CONFIGURACIÓN GOOGLE APPS SCRIPT ---
-        const URL_GAS = "https://script.google.com/macros/s/AKfycbyz8vQU5k63EKJWmscZONIqsN0B3TNjnl_sdEjCbfiQLk-oGuOVZ78ojXaf04_8_PZHHA/exec"; 
+        // --- CONFIGURACIÓN ---
+        const URL_GAS = "https://script.google.com/macros/s/AKfycbyz8vQU5k63EKJWmscZONIqsN0B3TNjnl_sdEjCbfiQLk-oGuOVZ78ojXaf04_8_PZHHA/exec";
 
         const firebaseConfig = {
             apiKey: "AIzaSyBxaeAc2nq7iEeiLejvja3lKGwR4E09QS4",
@@ -153,11 +170,10 @@
         const soundOk = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
         const soundError = new Audio('https://www.soundjay.com/buttons/beep-05.mp3');
 
-        // PERSISTENCIA DE SESIÓN: Cargamos desde localStorage al iniciar
-        let delegadoActivo = localStorage.getItem('unac_delegado_dni') || "";
+        // PERSISTENCIA DE SESIÓN
+        let delegadoActivo = localStorage.getItem('unac_session_dni') || "";
         const DELEGADOS = ["71886034", "77570731", "63229248", "73438294", "70694926"];
 
-        // Si ya hay sesión guardada, entrar directo
         window.onload = function() {
             if (delegadoActivo !== "") {
                 document.getElementById('login-container').style.display = 'none';
@@ -173,26 +189,49 @@
             document.getElementById('btn-noche').className = data.noche_activo ? 'btn-horario active-10pm' : 'btn-horario';
         });
 
-        function toggleTurno(t) {
-            const ref = db.ref(`sistema/config/${t}_activo`);
-            ref.once('value', s => ref.set(!s.val()));
-        }
-
         function intentarLogin() {
             const dni = document.getElementById('userDni').value;
             if (DELEGADOS.includes(dni) && dni === document.getElementById('userPass').value) {
                 delegadoActivo = dni;
-                localStorage.setItem('unac_delegado_dni', dni); // GUARDAR SESIÓN
-                document.getElementById('login-container').style.display = 'none';
-                document.getElementById('scanner-container').classList.remove('hidden');
-                document.getElementById('list-date').innerText = "Hoy: " + new Date().toLocaleDateString();
-                iniciarSistema();
+                localStorage.setItem('unac_session_dni', dni);
+                location.reload();
             } else { alert("DNI o contraseña incorrecta"); }
         }
 
         function cerrarSesion() {
-            localStorage.removeItem('unac_delegado_dni');
+            localStorage.removeItem('unac_session_dni');
             location.reload();
+        }
+
+        // FUNCIÓN CLAVE: MANDAR TODA LA LISTA AL EXCEL
+        async function sincronizarConExcel() {
+            const fecha = new Date().toISOString().split('T')[0];
+            const snap = await db.ref(`sistema/viajes/${fecha}`).once('value');
+            if(!snap.exists()) return alert("No hay datos hoy en Firebase para sincronizar.");
+
+            let lista = [];
+            const data = snap.val();
+            Object.keys(data).forEach(turno => {
+                const registros = data[turno].registros;
+                if(registros) {
+                    Object.keys(registros).forEach(dni => {
+                        lista.push({ 
+                            dni: dni, 
+                            nombre: registros[dni].nombre, 
+                            orden: registros[dni].orden, 
+                            turno: turno.toUpperCase() 
+                        });
+                    });
+                }
+            });
+
+            lista.sort((a,b) => a.orden - b.orden);
+            notificarFlash("SINCRONIZANDO...", "success", "Exportando datos al Excel");
+            
+            fetch(`${URL_GAS}?accion=sincronizar_base&lista=${encodeURIComponent(JSON.stringify(lista))}`)
+            .then(res => res.json())
+            .then(res => { if(res.status === "BASE_SINCRONIZADA") alert("Excel actualizado con la Lista Maestra."); })
+            .catch(e => alert("Error al conectar con Excel. Revisa el despliegue del Script."));
         }
 
         function iniciarSistema() {
@@ -206,35 +245,62 @@
                 const asistencias = (data.asistencias && data.asistencias[fecha]) ? data.asistencias[fecha] : {};
                 
                 let combined = [];
+                let historyData = [];
+
                 ['mañana', 'tarde', 'noche'].forEach(turno => {
                     if (viajes[turno] && viajes[turno].registros) {
                         Object.keys(viajes[turno].registros).forEach(dni => {
+                            const verificado = asistencias[dni] ? true : false;
                             combined.push({
-                                dni: dni,
-                                nombre: viajes[turno].registros[dni].nombre,
+                                dni: dni, nombre: viajes[turno].registros[dni].nombre,
                                 hora: viajes[turno].registros[dni].hora,
                                 orden: viajes[turno].registros[dni].orden || 999,
-                                turno: turno.toUpperCase(),
-                                verificado: asistencias[dni] ? true : false
+                                turno: turno.toUpperCase(), verificado: verificado
                             });
+                            if(verificado) {
+                                historyData.push({ 
+                                    nombre: viajes[turno].registros[dni].nombre, 
+                                    hora: asistencias[dni].hora, 
+                                    delegado: asistencias[dni].delegado 
+                                });
+                            }
                         });
                     }
                 });
 
                 combined.sort((a, b) => a.orden - b.orden);
-
                 document.getElementById('contador-sol').innerText = combined.length;
                 document.getElementById('contador-glo').innerText = Object.keys(asistencias).length;
                 document.getElementById('contador-mi').innerText = Object.values(asistencias).filter(a => a.delegado === delegadoActivo).length;
 
                 renderMasterList(combined);
+                renderHistorial(historyData);
             });
+        }
+
+        function renderHistorial(lista) {
+            const container = document.getElementById('historial-reciente');
+            // Ordenar por hora (más reciente arriba)
+            lista.sort((a,b) => b.hora.localeCompare(a.hora));
+            
+            if(lista.length === 0) { 
+                container.innerHTML = "<p class='text-center text-[10px] text-gray-600 py-4 italic'>Esperando escaneos...</p>"; 
+                return; 
+            }
+            container.innerHTML = lista.slice(0, 10).map(item => `
+                <div class="history-item">
+                    <div class="flex flex-col">
+                        <span class="font-bold text-white uppercase">${item.nombre}</span>
+                        <span class="text-[7px] text-yellow-500 uppercase tracking-tighter">Delegado: ${item.delegado}</span>
+                    </div>
+                    <span class="font-black text-green-500">${item.hora}</span>
+                </div>
+            `).join('');
         }
 
         function renderMasterList(students) {
             const container = document.getElementById('contenedor-lista-maestra');
-            if(students.length === 0) { container.innerHTML = "<p class='text-center text-gray-500 py-10'>No hay tickets hoy.</p>"; return; }
-
+            if(students.length === 0) { container.innerHTML = "<p class='text-center text-gray-500 py-10 italic'>No hay base de datos hoy.</p>"; return; }
             container.innerHTML = students.map(s => {
                 const hasSeat = s.orden <= 40;
                 return `
@@ -260,9 +326,7 @@
         }
 
         async function onScanSuccess(text) {
-            let dniScanned = "";
-            let tKey = "";
-
+            let dniScanned = ""; let tKey = "";
             if (text.includes(':')) {
                 const parts = text.split(':');
                 dniScanned = parts[1];
@@ -271,40 +335,35 @@
                 const parts = text.split('-');
                 dniScanned = parts[2];
                 tKey = parts[3].toLowerCase() === 't' ? 'tarde' : (parts[3].toLowerCase() === 'n' ? 'noche' : 'mañana');
-            } else {
-                return notificarFlash("QR INVÁLIDO", "error", "Formato no reconocido");
             }
-
-            if(!dniScanned || dniScanned.length < 8) return notificarFlash("ERROR DNI", "error", "No se pudo extraer DNI");
+            if(!dniScanned) return;
 
             const fechaHoy = new Date().toISOString().split('T')[0];
+            const snapTicket = await db.ref(`sistema/viajes/${fechaHoy}/${tKey}/registros/${dniScanned}`).once('value');
+            if(!snapTicket.exists()) return notificarFlash("SIN TICKET", "error", "No registrado");
 
             const snapAsis = await db.ref(`sistema/asistencias/${fechaHoy}/${dniScanned}`).once('value');
-            if(snapAsis.exists()) return notificarFlash("YA ESCANEADO", "error", "El alumno ya abordó");
+            if(snapAsis.exists()) return notificarFlash("YA ESCANEADO", "error", "Ya abordó");
 
-            const snapTicket = await db.ref(`sistema/viajes/${fechaHoy}/${tKey}/registros/${dniScanned}`).once('value');
-            if(!snapTicket.exists()) return notificarFlash("SIN TICKET", "error", "No tiene ticket para este turno");
+            const nombre = snapTicket.val().nombre;
 
-            const nombreCapturado = snapTicket.val().nombre;
-
-            // 3. Registrar asistencia en FIREBASE
-            db.ref(`sistema/asistencias/${fechaHoy}/${dniScanned}`).set({
-                nombre: nombreCapturado, 
+            // 1. REGISTRAR EN FIREBASE
+            db.ref(`sistema/asistencias/${fechaHoy}/${dniScanned}`).set({ 
+                nombre: nombre, 
                 hora: new Date().toLocaleTimeString(), 
-                delegado: delegadoActivo
+                delegado: delegadoActivo 
             });
-
-            // 4. Registrar en GOOGLE SHEETS (Sincronización Dual)
-            fetch(`${URL_GAS}?accion=marcar_asistencia&dni=${dniScanned}&nombre=${encodeURIComponent(nombreCapturado)}&delegado=${delegadoActivo}`)
-            .then(() => console.log("Sincronizado con Sheets"))
-            .catch(e => console.log("Error Sheets:", e));
+            
+            // 2. ACTUALIZAR EXCEL (ACCION MARCAR)
+            fetch(`${URL_GAS}?accion=marcar_asistencia&dni=${dniScanned}&delegado=${delegadoActivo}`)
+            .catch(() => console.log("Error sync Excel"));
 
             soundOk.play();
-            notificarFlash("VERIFICADO ✅", "success", nombreCapturado);
+            notificarFlash("VERIFICADO ✅", "success", nombre);
         }
 
         function toggleLista(show) { document.getElementById('master-list-view').style.display = show ? 'flex' : 'none'; }
-
+        
         function notificarFlash(titulo, tipo, sub) {
             const f = document.getElementById('flash-notif'), t = document.getElementById('flash-text'), st = document.getElementById('flash-subtext'), i = document.getElementById('flash-icon');
             t.innerText = titulo; st.innerText = sub;
@@ -314,22 +373,17 @@
             f.style.display = 'block'; setTimeout(() => f.style.display = 'none', 2000);
         }
 
+        function toggleTurno(t) {
+            const ref = db.ref(`sistema/config/${t}_activo`);
+            ref.once('value', s => ref.set(!s.val()));
+        }
+
         async function reiniciarFirebase() {
-            if(confirm("¿Desea reiniciar todo el sistema? (Firebase y Sheets)")) {
+            if(confirm("¿Reiniciar sistema hoy? Se borrarán abordados y tickets de hoy.")) {
                 const fecha = new Date().toISOString().split('T')[0];
-                
-                // Reiniciar Firebase
-                await Promise.all([
-                    db.ref(`sistema/viajes/${fecha}`).remove(),
-                    db.ref(`sistema/asistencias/${fecha}`).remove(),
-                    db.ref('sistema/config').set({ tarde_activo: false, noche_activo: false, mañana_activo: false })
-                ]);
-
-                // Reiniciar Google Sheets
-                fetch(`${URL_GAS}?accion=reiniciar_sistema`)
-                .then(() => alert("Sistemas reiniciados"))
-                .catch(e => alert("Error al reiniciar Sheets"));
-
+                await db.ref(`sistema/viajes/${fecha}`).remove();
+                await db.ref(`sistema/asistencias/${fecha}`).remove();
+                fetch(`${URL_GAS}?accion=reiniciar_sistema`).catch(() => {});
                 location.reload();
             }
         }
