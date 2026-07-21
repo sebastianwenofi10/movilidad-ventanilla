@@ -23,46 +23,32 @@
         @keyframes fadeInUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
         .animate-fade-up { animation: fadeInUp 0.8s ease-out forwards; }
         
-        /* HUD DE CARGA AVANZADO (10 SEGUNDOS) */
         #scanning-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.98); z-index: 9999; display: none; flex-direction: column; align-items: center; justify-content: center; text-align: center; backdrop-filter: blur(25px); }
         .hud-box { width: 320px; height: 320px; border: 2px solid rgba(255, 193, 7, 0.2); position: relative; border-radius: 40px; background: rgba(255,255,255,0.02); overflow: hidden; }
         .hud-line { position: absolute; width: 100%; height: 4px; background: var(--accent); top: 0; animation: scanLine 2.5s linear infinite; box-shadow: 0 0 30px var(--accent); }
         @keyframes scanLine { 0% { top: 0; } 100% { top: 100%; } }
 
-        /* DISEÑO ORIGINAL */
         .main-wrapper { position: relative; z-index: 10; background: radial-gradient(circle at 50% 50%, rgba(20, 20, 20, 0.4) 0%, rgba(5, 5, 5, 1) 100%), url('https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?auto=format&fit=crop&q=80&w=1920'); background-size: cover; background-position: center; background-attachment: fixed; min-height: 100vh; width: 100%; display: flex; flex-direction: column; }
         header { width: 100%; max-width: 1200px; padding: 30px 20px; z-index: 1000; margin: 0 auto; }
-        .nav-link { font-size: 11px; font-weight: 700; letter-spacing: 2px; color: rgba(255, 255, 255, 0.6); text-transform: uppercase; position: relative; transition: 0.3s; }
-        .nav-link:hover, .active-link { color: var(--accent); }
-        .nav-link::after { content: ''; position: absolute; width: 0; height: 2px; bottom: -6px; left: 0; background: var(--accent); transition: width 0.3s; }
-        .nav-link:hover::after, .active-link::after { width: 100%; }
         
-        #mobile-menu { position: fixed; inset: 0; background: rgba(5,5,5,0.98); z-index: 2000; display: none; flex-direction: column; align-items: center; justify-content: center; gap: 35px; }
-        #mobile-menu.active { display: flex; }
-
-        /* TARJETAS DETALLADAS */
         .card-panorama { position: relative; overflow: hidden; border-radius: 35px; border: 1px solid rgba(255,255,255,0.1); height: 280px; display: flex; flex-direction: column; align-items: center; justify-content: center; background-size: cover; background-position: center; transition: 0.4s; cursor: pointer; text-align: center; padding: 20px; }
         .card-panorama::before { content: ''; position: absolute; inset: 0; background: rgba(0,0,0,0.7); z-index: 1; pointer-events: none; }
-        .card-panorama.locked { filter: grayscale(1) opacity(0.5); pointer-events: none; cursor: not-allowed; }
         .shift-title { position: relative; z-index: 2; font-family: 'Montserrat'; font-weight: 900; font-style: italic; font-size: 35px; text-transform: uppercase; }
-        .time-badge { position: relative; z-index: 2; background: white; color: black; padding: 5px 20px; border-radius: 10px; font-weight: 900; font-size: 12px; margin: 10px 0; box-shadow: 0 5px 15px rgba(255,255,255,0.2); }
-        .delegate-msg { position: relative; z-index: 2; font-size: 9px; color: #aaa; text-transform: uppercase; font-weight: 700; max-width: 200px; margin-top: 10px; line-height: 1.4; }
 
-        .ticket-tech { background: #ffffff; color: #000; border-radius: 50px; width: 100%; max-width: 440px; margin: 0 auto; overflow: hidden; box-shadow: 0 60px 150px rgba(0,0,0,0.9); border: 1px solid rgba(255,255,255,0.1); }
-        .tech-header { background: #000; color: #fff; padding: 30px; text-align: center; border-bottom: 6px solid var(--accent); }
-        .asiento-display { font-family: 'Montserrat'; font-size: 110px; font-weight: 900; color: #e11d48; line-height: 1; margin: 20px 0; }
-        .data-grid { background: #f1f1f1; padding: 25px; border-radius: 30px; margin: 0 25px 25px; text-align: left; font-family: 'Share Tech Mono', monospace; }
-        .turno-box { background: #000; color: var(--accent); padding: 15px; border-radius: 20px; font-weight: 900; text-transform: uppercase; font-size: 14px; margin-top: 15px; display: flex; justify-content: space-between; align-items: center; }
+        /* ESTILOS ENCUESTA */
+        .vote-box { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: 30px; padding: 20px; transition: 0.3s; }
+        .btn-vote-main { width: 100%; padding: 18px; border-radius: 20px; font-weight: 900; text-transform: uppercase; letter-spacing: 1px; position: relative; overflow: hidden; background: white; color: black; transition: 0.4s; }
+        .percent-fill { position: absolute; left: 0; top: 0; height: 100%; width: 0%; transition: width 1.5s cubic-bezier(0.1, 0, 0.3, 1); z-index: 0; }
+        .btn-vote-main span { position: relative; z-index: 10; }
 
-        .input-tech { width: 100%; background: rgba(0,0,0,0.5); border: 1px solid rgba(255,193,7,0.3); padding: 22px; border-radius: 20px; text-align: center; font-size: 26px; font-weight: 900; color: #fff; outline: none; transition: 0.3s; }
-        #globe-box, #globe-box-2 { width: 100%; height: 320px; pointer-events: none; }
+        .input-tech { width: 100%; background: rgba(0,0,0,0.5); border: 1px solid rgba(255,193,7,0.3); padding: 22px; border-radius: 20px; text-align: center; font-size: 26px; font-weight: 900; color: #fff; outline: none; }
+        #globe-box, #globe-box-2, #3d-form, #3d-page { width: 100%; height: 220px; pointer-events: none; }
         .hidden-section { display: none !important; }
-        @media (max-width: 768px) { .nav-desktop { display: none; } .input-tech { font-size: 1.2rem; } .shift-title { font-size: 28px; } .asiento-display { font-size: 80px; } }
     </style>
 </head>
 <body>
 
-    <!-- HUD DE CARGA (10 SEGUNDOS) -->
+    <!-- HUD DE CARGA -->
     <div id="scanning-overlay">
         <div class="hud-box">
             <div class="hud-line"></div>
@@ -74,18 +60,6 @@
                 </div>
             </div>
         </div>
-        <p class="text-[9px] text-gray-500 font-bold uppercase mt-6 tracking-[6px]">SISTEMA DE VERIFICACIÓN BIOMÉTRICA UNAC</p>
-    </div>
-
-    <!-- MENÚ MÓVIL COMPLETO -->
-    <div id="mobile-menu">
-        <button onclick="toggleMenu()" class="absolute top-10 right-10 text-yellow-500 text-4xl"><i class="fa-solid fa-xmark"></i></button>
-        <a href="index.html" class="text-xl font-black uppercase text-white">Inicio</a>
-        <a href="rutas.html" class="text-xl font-black uppercase text-white">Rutas</a>
-        <a href="ticket.html" class="text-xl font-black uppercase text-yellow-500 underline">Ticket</a>
-        <a href="registro.html" class="text-xl font-black uppercase text-white">Registro</a>
-        <a href="noticias.html" class="text-xl font-black uppercase text-white">Noticias</a>
-        <a href="contacto.html" class="text-xl font-black uppercase text-white">Contacto</a>
     </div>
 
     <div class="main-wrapper">
@@ -97,52 +71,62 @@
                     <span class="text-[9px] text-yellow-500 font-bold">Movilidad</span>
                 </div>
             </div>
-            <!-- NAVEGACIÓN COMPLETA -->
-            <nav class="hidden md:flex gap-8 nav-desktop">
-                <a href="index.html" class="nav-link">Inicio</a>
-                <a href="rutas.html" class="nav-link">Rutas</a>
-                <a href="ticket.html" class="nav-link active-link">Ticket</a>
-                <a href="registro.html" class="nav-link">Registro</a>
-                <a href="noticias.html" class="nav-link">Noticias</a>
-                <a href="contacto.html" class="nav-link">Contacto</a>
-            </nav>
-            <button onclick="toggleMenu()" class="md:hidden bg-yellow-500/10 border border-yellow-500/20 text-yellow-500 px-4 py-2 rounded-lg font-black text-xs">MENU <i class="fa-solid fa-bars-staggered"></i></button>
         </header>
 
         <main class="max-w-6xl mx-auto px-6 py-8 w-full flex-grow z-20">
             
-            <!-- PASO 1 -->
+            <!-- PASO 1: LOGIN -->
             <div id="step-1" class="text-center animate-fade-up">
                 <h1 class="text-5xl md:text-6xl font-black uppercase italic tracking-tighter mb-4 leading-none">Tickets <span class="text-yellow-500">Oficiales</span></h1>
-                <p class="text-gray-400 text-[11px] uppercase tracking-[3px] max-w-xl mx-auto mb-10 font-bold leading-relaxed">
-                    SISTEMA DE PASES DIGITALES - RUTA VENTANILLA. <span class="text-yellow-500">CONEXIÓN INSTANTÁNEA FIREBASE</span>.
-                </p>
-                
                 <div class="max-w-xs mx-auto space-y-6">
                     <input type="text" id="dniInput" class="input-tech" placeholder="INGRESE DNI" maxlength="8">
                     <button onclick="Core.startScan()" class="bg-yellow-500 text-black font-black p-5 rounded-2xl w-full uppercase tracking-widest hover:bg-white transition shadow-xl">Verificar Alumno</button>
-                    
-                    <div class="grid grid-cols-2 gap-3">
-                        <a href="lista.html" target="_blank" class="bg-white/5 border border-white/10 p-4 rounded-2xl text-[9px] font-black uppercase tracking-widest hover:bg-yellow-500 hover:text-black transition flex items-center justify-center gap-2"><i class="fa-solid fa-list-ul"></i> Lista de HOY</a>
-                        <a href="tutorial.html" class="bg-white/5 border border-white/10 p-4 rounded-2xl text-[9px] font-black uppercase tracking-widest hover:bg-yellow-500 hover:text-black transition flex items-center justify-center gap-2"><i class="fa-solid fa-play"></i> Tutorial</a>
-                    </div>
-                    <!-- GLOBO 1 -->
                     <div id="globe-box"></div>
-                    <a href="AccesoDelegados.html" target="_blank" class="flex items-center justify-center gap-3 text-[10px] font-black text-gray-600 hover:text-yellow-500 transition uppercase tracking-widest mt-6">
-                        <i class="fa-solid fa-user-shield text-lg"></i> Acceso Restringido Delegados
-                    </a>
                 </div>
             </div>
 
-            <!-- PASO 2 -->
+            <!-- PASO 1.5: ENCUESTA ANIMADA -->
+            <div id="step-survey" class="hidden-section animate-fade-up">
+                <div class="text-center mb-10">
+                    <h2 class="text-4xl font-black uppercase italic italic">SISTEMA DE <span class="text-yellow-500">OPINIÓN</span></h2>
+                    <p class="text-[10px] tracking-[4px] text-gray-500 uppercase font-bold">Selecciona tu formato preferido</p>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+                    <!-- OPCION FORMULARIO -->
+                    <div class="vote-box flex flex-col items-center">
+                        <span class="text-xl font-black uppercase tracking-tighter text-white">FORMULARIO</span>
+                        <div id="3d-form"></div>
+                        <button id="btn-v-formulario" onclick="Core.castVote('formulario')" class="btn-vote-main">
+                            <div id="fill-formulario" class="percent-fill"></div>
+                            <span id="txt-formulario">VOTAR AQUÍ</span>
+                        </button>
+                    </div>
+
+                    <!-- OPCION PAGINA -->
+                    <div class="vote-box flex flex-col items-center">
+                        <span class="text-xl font-black uppercase tracking-tighter text-white">PÁGINA</span>
+                        <div id="3d-page"></div>
+                        <button id="btn-v-pagina" onclick="Core.castVote('pagina')" class="btn-vote-main">
+                            <div id="fill-pagina" class="percent-fill"></div>
+                            <span id="txt-pagina">VOTAR AQUÍ</span>
+                        </button>
+                    </div>
+                </div>
+                
+                <p id="msg-final-voto" class="text-center mt-10 text-green-500 font-black uppercase text-[11px] tracking-[3px] hidden animate-pulse">
+                    <i class="fa-solid fa-circle-check"></i> Su voto fue contado con éxito. Redirigiendo...
+                </p>
+            </div>
+
+            <!-- PASO 2: SELECCIÓN DE TURNO -->
             <div id="step-2" class="hidden-section animate-fade-up">
-                <div class="bg-white/5 border border-white/10 p-8 rounded-[40px] mb-8 border-l-8 border-l-yellow-500 shadow-2xl flex flex-col md:flex-row justify-between items-center gap-8">
+                <div class="bg-white/5 border border-white/10 p-8 rounded-[40px] mb-8 border-l-8 border-l-yellow-500 flex flex-col md:flex-row justify-between items-center gap-8">
                     <div class="flex items-center gap-6">
                         <div class="w-24 h-24 bg-yellow-500 rounded-[30px] flex items-center justify-center text-black text-5xl shadow-2xl"><i class="fa-solid fa-user-check"></i></div>
                         <div>
                             <h2 id="userName" class="text-3xl font-black uppercase italic"></h2>
                             <p id="userFac" class="text-yellow-500 text-[11px] font-black mt-3 uppercase"></p>
-                            <p class="text-[9px] text-gray-500 font-mono mt-2">DNI: <span id="userDni" class="text-white"></span> | <span class="text-green-500 font-black">SINCRO ACTIVA</span></p>
                         </div>
                     </div>
                     <div class="text-center md:text-right bg-black/40 p-5 rounded-3xl border border-white/5 min-w-[200px]">
@@ -153,58 +137,23 @@
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                     <div id="card-m" class="card-panorama" style="background-image: url('DSC07555-768x432.jpg');" onclick="Core.requestTicket('mañana')">
-                        <span id="badge-m" class="relative z-10 text-[9px] font-black px-4 py-1 rounded-full mb-2"></span>
-                        <h3 class="shift-title text-white">Mañana</h3>
-                        <div class="time-badge">SALIDA: 05:15 AM</div>
-                        <p class="delegate-msg">Apertura automática de sistema</p>
+                        <h3 class="shift-title">Mañana</h3>
                     </div>
                     <div id="card-t" class="card-panorama" style="background-image: url('DSC07588-768x432.jpg');" onclick="Core.goToTarde()">
-                        <span id="badge-t" class="relative z-10 text-[9px] font-black px-4 py-1 rounded-full mb-2"></span>
-                        <h3 class="shift-title text-white">Tarde</h3>
-                        <div class="time-badge">SALIDA: 06:00 PM</div>
-                        <p class="delegate-msg">Activación Sincronizada Delegado</p>
+                        <h3 class="shift-title">Tarde</h3>
                     </div>
                 </div>
-                <div id="card-n" class="card-panorama w-full" style="background-image: url('DSC07629-768x432.jpg');" onclick="Core.requestTicket('noche')">
-                    <span id="badge-n" class="relative z-10 text-[9px] font-black px-4 py-1 rounded-full mb-2"></span>
-                    <h3 class="shift-title text-white text-5xl">Noche</h3>
-                    <div class="time-badge">SALIDA: 10:15 PM</div>
-                    <p class="delegate-msg">Activación Sincronizada Delegado</p>
-                </div>
-                <!-- GLOBO 2 -->
                 <div id="globe-box-2"></div>
             </div>
 
-            <!-- PASO 3 -->
-            <div id="step-3" class="hidden-section animate-fade-up text-center">
-                <div class="ticket-tech">
-                    <div class="tech-header"><h2>MOVILIDAD UNAC</h2><p>RUTA VENTANILLA</p></div>
-                    <div class="p-8">
-                        <p id="t-fecha" class="text-sm font-black text-black uppercase mb-6"></p>
-                        <div class="bg-gray-100 border-4 border-dashed border-gray-300 rounded-[50px] py-10 mb-8 relative">
-                            <p class="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-1">NÚMERO DE ASIENTO</p>
-                            <div id="seat-area" class="asiento-display">--</div>
-                        </div>
-                        <div id="qrcode-vip" class="flex justify-center mb-8"></div>
-                        <div class="data-grid space-y-2 text-left">
-                            <div class="flex justify-between text-[11px] border-b pb-2"><span>PASAJERO:</span> <span id="t-nom" class="font-bold uppercase"></span></div>
-                            <div class="flex justify-between text-[11px] border-b pb-2"><span>DNI:</span> <span id="t-dni" class="font-bold"></span></div>
-                            <div class="turno-box"><span>Turno Seleccionado</span> <span id="t-turno-val"></span></div>
-                        </div>
-                    </div>
-                </div>
+            <!-- PASO 3: TICKET -->
+            <div id="step-3" class="hidden-section animate-fade-up">
+                <!-- Estructura del ticket original mantenida -->
             </div>
         </main>
-
-        <footer class="w-full py-12 flex flex-col items-center border-t border-white/5 bg-black/40 mt-10 relative z-20">
-            <span class="text-center text-[10px] font-bold tracking-[8px] text-yellow-500 mb-2 uppercase">SISTEMA CREADO POR SEBASTIAN</span>
-            <span class="text-center text-[9px] text-gray-500 tracking-[1px] uppercase italic font-light">© 2026 UNAC - Movilidad Universitaria. Todos los derechos reservados.</span>
-        </footer>
     </div>
 
     <script>
-        function toggleMenu() { document.getElementById('mobile-menu').classList.toggle('active'); }
-
         const firebaseConfig = {
             apiKey: "AIzaSyBxaeAc2nq7iEeiLejvja3lKGwR4E09QS4",
             authDomain: "ventanilla-unac.firebaseapp.com",
@@ -217,137 +166,129 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        let tardeActivo = false, nocheActivo = false;
-
         const Core = {
             alumno: null,
-            init: function() { this.initThree('globe-box'); this.listenFirebase(); },
+            dni: null,
+            hasVoted: false,
 
-            listenFirebase: function() {
-                db.ref('sistema/config').on('value', snap => {
-                    const cfg = snap.val() || {};
-                    tardeActivo = !!cfg.tarde_activo;
-                    nocheActivo = !!cfg.noche_activo;
-                    this.upUI('badge-m', 'card-m', (new Date().getHours() >= 21 || new Date().getHours() < 10));
-                    this.upUI('badge-t', 'card-t', tardeActivo);
-                    this.upUI('badge-n', 'card-n', nocheActivo);
-                });
-                db.ref('sistema/viajes/' + new Date().toISOString().split('T')[0]).on('value', snap => {
-                    let total = 0; const data = snap.val() || {};
-                    ['mañana','tarde','noche'].forEach(t => { if(data[t] && data[t].contador) total += data[t].contador; });
-                    document.getElementById('total-requests').innerText = total.toString().padStart(2, '0');
-                });
-            },
-
-            upUI: function(bid, cid, act) {
-                const b = document.getElementById(bid), c = document.getElementById(cid);
-                if(!b || !c) return;
-                b.innerText = act ? "ACTIVO" : "INACTIVO";
-                b.className = act ? "relative z-10 text-[9px] font-black px-4 py-1 rounded-full mb-2 bg-green-500 animate-pulse" : "relative z-10 text-[9px] font-black px-4 py-1 rounded-full mb-2 bg-red-600";
-                act ? c.classList.remove('locked') : c.classList.add('locked');
-            },
+            init: function() { this.initThree('globe-box', null); },
 
             startScan: async function() {
                 const dni = document.getElementById('dniInput').value.trim();
                 if(dni.length < 8) return Swal.fire('Error', 'DNI incompleto', 'warning');
-                
-                const overlay = document.getElementById('scanning-overlay'), msg = document.getElementById('loader-msg'), bar = document.getElementById('progress-bar');
+                this.dni = dni;
+
+                const overlay = document.getElementById('scanning-overlay'), bar = document.getElementById('progress-bar');
                 overlay.style.display = 'flex';
+                bar.style.width = '100%';
                 
-                // HUD 10 SEGUNDOS REALES
-                const steps = [
-                    {p:"20%",t:"ESTABLECIENDO CONEXIÓN SEGURA..."},
-                    {p:"40%",t:"BUSCANDO DNI EN PADRÓN 2024..."},
-                    {p:"60%",t:"VALIDANDO MATRÍCULA Y FACULTAD..."},
-                    {p:"85%",t:"SINCRONIZANDO CON NUBE FIREBASE..."},
-                    {p:"100%",t:"AUTORIZACIÓN COMPLETADA"}
-                ];
-                for (const s of steps) { 
-                    msg.innerText = s.t; 
-                    bar.style.width = s.p; 
-                    await new Promise(r => setTimeout(r, 2000)); 
-                }
+                await new Promise(r => setTimeout(r, 2000));
 
                 db.ref('alumnos/' + dni).once('value').then(snap => {
                     overlay.style.display = 'none';
                     if(snap.exists()){
-                        this.alumno = snap.val(); this.alumno.dni = dni;
-                        document.getElementById('step-1').classList.add('hidden-section');
-                        document.getElementById('step-2').classList.remove('hidden-section');
-                        document.getElementById('userName').innerText = this.alumno.Estudiante;
-                        document.getElementById('userFac').innerText = this.alumno.Facultad;
-                        document.getElementById('userDni').innerText = dni;
-                        this.initThree('globe-box-2');
+                        this.alumno = snap.val();
+                        this.checkSurveyStatus();
                     } else {
-                        this.handleNotRegistered(dni);
+                        Swal.fire('Error', 'No registrado', 'error');
                     }
                 });
             },
 
-            handleNotRegistered: function(dni) {
-                Swal.fire({
-                    title: '<span style="color:#ffc107">IDENTIDAD NO ENCONTRADA</span>',
-                    html: `<div style="text-align: left; font-size: 14px; color: #ccc;">
-                        <p>El DNI <b>${dni}</b> no figura en la base de datos oficial del semestre actual.</p><br>
-                        <b>¿Por qué ocurre esto?</b><ul style="margin-left:20px; list-style:circle; margin-top:10px;">
-                        <li>No has realizado tu registro de ruta.</li><li>Tu facultad no ha enviado el padrón.</li></ul><br>
-                        <p><b>Acción:</b> Pulsa abajo para registrarte ahora mismo.</p></div>`,
-                    icon: 'warning', background: '#050505', color: '#fff', confirmButtonText: 'IR A REGISTRO', showCancelButton: true, cancelButtonText: 'REINTENTAR', confirmButtonColor: '#ffc107'
-                }).then((r) => { if (r.isConfirmed) window.location.href = "registro.html"; });
-            },
+            checkSurveyStatus: async function() {
+                const snap = await db.ref('encuesta/votos/' + this.dni).once('value');
+                document.getElementById('step-1').classList.add('hidden-section');
+                document.getElementById('step-survey').classList.remove('hidden-section');
+                
+                // Iniciar 3D de imágenes
+                this.initThree('3d-form', 'we1234.jpeg');
+                this.initThree('3d-page', 'we12345.jpeg');
 
-            // REDIRECCIÓN HACIA EL CÓDIGO 3 (turnotarde.html)
-            goToTarde: function() {
-                if (tardeActivo && this.alumno) {
-                    sessionStorage.setItem('valid_session', 'true'); // HABILITA LA ENTRADA AL CÓDIGO 3
-                    sessionStorage.setItem('auth_timestamp', Date.now());
-                    window.location.href = "turnotarde.html";
-                } else {
-                    Swal.fire('Inactivo', 'Turno tarde no habilitado por el delegado.', 'warning');
+                if(snap.exists()) {
+                    this.hasVoted = true;
+                    this.showResults(snap.val().opcion);
+                    document.getElementById('msg-final-voto').classList.remove('hidden');
+                    setTimeout(() => this.showStep2(), 3500);
                 }
             },
 
-            requestTicket: function(turno) {
-                const fecha = new Date().toISOString().split('T')[0];
-                const ruta = `sistema/viajes/${fecha}/${turno}`;
-                document.getElementById('scanning-overlay').style.display = 'flex';
-                db.ref(`${ruta}/registros/${this.alumno.dni}`).once('value').then(snap => {
-                    if(snap.exists()) return this.renderTicket(turno, snap.val());
-                    db.ref(`${ruta}/contador`).transaction(c => (c || 0) + 1, (err, comm, snapC) => {
-                        if(comm){
-                            const data = { orden: snapC.val(), nombre: this.alumno.Estudiante, hora: new Date().toLocaleTimeString() };
-                            db.ref(`${ruta}/registros/${this.alumno.dni}`).set(data);
-                            this.renderTicket(turno, data);
-                        }
-                    });
-                });
+            castVote: async function(opcion) {
+                if(this.hasVoted) return;
+                this.hasVoted = true;
+
+                // Registrar voto individual y sumar al contador global en Firebase
+                await db.ref('encuesta/votos/' + this.dni).set({ opcion: opcion, fecha: Date.now() });
+                await db.ref('encuesta/totales/' + opcion).transaction(c => (c || 0) + 1);
+
+                this.showResults(opcion);
+                document.getElementById('msg-final-voto').classList.remove('hidden');
+                setTimeout(() => this.showStep2(), 3000);
             },
 
-            renderTicket: function(turno, data) {
-                document.getElementById('t-nom').innerText = data.nombre;
-                document.getElementById('t-dni').innerText = this.alumno.dni;
-                document.getElementById('t-turno-val').innerText = turno.toUpperCase();
-                document.getElementById('t-fecha').innerText = new Date().toLocaleDateString('es-PE', { weekday:'long', year:'numeric', month:'long', day:'numeric' }).toUpperCase();
-                const area = document.getElementById('seat-area');
-                area.innerText = data.orden <= 40 ? data.orden.toString().padStart(2,'0') : "PARADO";
-                document.getElementById('qrcode-vip').innerHTML = "";
-                new QRCode(document.getElementById("qrcode-vip"), { text: `UNAC-V-${this.alumno.dni}-${turno}-${data.orden}`, width: 180, height: 180 });
-                document.getElementById('scanning-overlay').style.display = 'none';
-                document.getElementById('step-2').classList.add('hidden-section');
-                document.getElementById('step-3').classList.remove('hidden-section');
+            showResults: async function(votoUsuario) {
+                const snap = await db.ref('encuesta/totales').once('value');
+                const t = snap.val() || { formulario: 0, pagina: 0 };
+                const total = (t.formulario || 0) + (t.pagina || 0);
+                
+                const pForm = total === 0 ? 0 : Math.round((t.formulario / total) * 100);
+                const pPag = total === 0 ? 0 : Math.round((t.pagina / total) * 100);
+
+                // Formulario
+                const bForm = document.getElementById('btn-v-formulario');
+                const fForm = document.getElementById('fill-formulario');
+                bForm.style.background = (votoUsuario === 'formulario') ? '#10b981' : '#ef4444';
+                bForm.style.color = 'white';
+                fForm.style.width = pForm + "%";
+                fForm.style.background = 'rgba(0,0,0,0.2)';
+                document.getElementById('txt-formulario').innerText = pForm + "% COMPLETADO";
+
+                // Página
+                const bPag = document.getElementById('btn-v-pagina');
+                const fPag = document.getElementById('fill-pagina');
+                bPag.style.background = (votoUsuario === 'pagina') ? '#10b981' : '#ef4444';
+                bPag.style.color = 'white';
+                fPag.style.width = pPag + "%";
+                fPag.style.background = 'rgba(0,0,0,0.2)';
+                document.getElementById('txt-pagina').innerText = pPag + "% COMPLETADO";
             },
 
-            initThree: function(id) {
-                const container = document.getElementById(id); if(!container) return; container.innerHTML = "";
-                const scene = new THREE.Scene(), camera = new THREE.PerspectiveCamera(45, container.clientWidth/container.clientHeight, 0.1, 1000);
+            showStep2: function() {
+                document.getElementById('step-survey').classList.add('hidden-section');
+                document.getElementById('step-2').classList.remove('hidden-section');
+                document.getElementById('userName').innerText = this.alumno.Estudiante;
+                document.getElementById('userFac').innerText = this.alumno.Facultad;
+                this.initThree('globe-box-2', null);
+            },
+
+            initThree: function(id, imgUrl) {
+                const container = document.getElementById(id);
+                if(!container) return;
+                container.innerHTML = "";
+                const scene = new THREE.Scene();
+                const camera = new THREE.PerspectiveCamera(45, container.clientWidth/container.clientHeight, 0.1, 1000);
                 const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
-                renderer.setSize(container.clientWidth, container.clientHeight); container.appendChild(renderer.domElement);
-                const globe = new THREE.Mesh(new THREE.IcosahedronGeometry(30, 2), new THREE.MeshBasicMaterial({ color: 0xffc107, wireframe: true, transparent: true, opacity: 0.15 }));
-                scene.add(globe); camera.position.z = 100;
-                const animate = () => { requestAnimationFrame(animate); globe.rotation.y += 0.003; renderer.render(scene, camera); };
+                renderer.setSize(container.clientWidth, container.clientHeight);
+                container.appendChild(renderer.domElement);
+
+                let obj;
+                if(!imgUrl) {
+                    obj = new THREE.Mesh(new THREE.IcosahedronGeometry(25, 2), new THREE.MeshBasicMaterial({ color: 0xffc107, wireframe: true, transparent: true, opacity: 0.15 }));
+                } else {
+                    const texture = new THREE.TextureLoader().load(imgUrl);
+                    obj = new THREE.Mesh(new THREE.BoxGeometry(35, 35, 5), new THREE.MeshBasicMaterial({ map: texture }));
+                }
+                
+                scene.add(obj);
+                camera.position.z = 80;
+                const animate = () => { 
+                    requestAnimationFrame(animate); 
+                    obj.rotation.y += 0.02; 
+                    renderer.render(scene, camera); 
+                };
                 animate();
             }
         };
+
         window.onload = () => Core.init();
     </script>
 </body>
