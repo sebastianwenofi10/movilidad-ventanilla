@@ -151,10 +151,47 @@
 
                 <!-- SECCIÓN DE VOTACIÓN -->
                 <div id="voting-module" class="mb-10 w-full animate-fade-up">
-                    <h3 class="text-2xl font-black uppercase italic text-center text-white mb-6">Encuesta <span class="text-yellow-500">Global</span></h3>
+                    <h3 class="text-3xl font-black uppercase italic text-center text-white mb-6">Encuesta <span class="text-yellow-500">Global</span></h3>
+                    
+                    <!-- ================= NUEVO: MENSAJE RECORDATORIO ================= -->
+                    <div class="bg-yellow-500/10 border border-yellow-500/30 p-6 md:p-8 rounded-3xl mb-8 text-left shadow-lg">
+                        <h4 class="text-yellow-500 font-black text-lg md:text-xl mb-4 uppercase tracking-wider flex items-center gap-3">
+                            <i class="fa-solid fa-bullhorn text-2xl animate-pulse"></i> RECORDATORIO IMPORTANTE: CIERRE DE ENCUESTA
+                        </h4>
+                        <div class="text-gray-300 text-sm md:text-base leading-relaxed space-y-3 font-medium">
+                            <p>Estimados compañeros:</p>
+                            <p>Como se anunció anteriormente, la encuesta solicitada por ustedes ya se encuentra activa para recopilar sus respuestas.</p>
+                            <p>Les recordamos que la plataforma estará habilitada únicamente hasta el <strong class="text-white">domingo 23 de agosto a las 23:59 h (00:00 h)</strong>. Les pedimos a quienes aún no la han completado que lo hagan a la brevedad posible, ya que no habrá prórroga.</p>
+                            <p>Agradecemos su participación y colaboración para seguir mejorando la gestión de la movilidad. 🚌👍</p>
+                        </div>
+                    </div>
+
+                    <!-- ================= NUEVO: CRONÓMETRO DIGITAL ================= -->
+                    <div class="mb-10 flex flex-col items-center">
+                        <p class="text-[11px] text-yellow-500 font-black uppercase mb-4 tracking-[5px]">Tiempo Restante para Cierre</p>
+                        <div class="flex gap-3 md:gap-6 text-center font-mono">
+                            <div class="bg-black/60 border border-white/10 rounded-2xl w-20 h-20 md:w-24 md:h-24 flex flex-col items-center justify-center shadow-xl">
+                                <span id="cd-days" class="text-3xl md:text-4xl font-black text-white">00</span>
+                                <span class="text-[9px] md:text-[11px] text-gray-500 font-bold uppercase mt-1 tracking-widest">Días</span>
+                            </div>
+                            <div class="bg-black/60 border border-white/10 rounded-2xl w-20 h-20 md:w-24 md:h-24 flex flex-col items-center justify-center shadow-xl">
+                                <span id="cd-hours" class="text-3xl md:text-4xl font-black text-white">00</span>
+                                <span class="text-[9px] md:text-[11px] text-gray-500 font-bold uppercase mt-1 tracking-widest">Horas</span>
+                            </div>
+                            <div class="bg-black/60 border border-white/10 rounded-2xl w-20 h-20 md:w-24 md:h-24 flex flex-col items-center justify-center shadow-xl">
+                                <span id="cd-minutes" class="text-3xl md:text-4xl font-black text-white">00</span>
+                                <span class="text-[9px] md:text-[11px] text-gray-500 font-bold uppercase mt-1 tracking-widest">Min</span>
+                            </div>
+                            <div class="bg-black/60 border border-white/10 rounded-2xl w-20 h-20 md:w-24 md:h-24 flex flex-col items-center justify-center shadow-xl relative overflow-hidden">
+                                <span id="cd-seconds" class="text-3xl md:text-4xl font-black text-red-500 animate-pulse relative z-10">00</span>
+                                <span class="text-[9px] md:text-[11px] text-gray-500 font-bold uppercase mt-1 tracking-widest relative z-10">Seg</span>
+                                <div class="absolute bottom-0 left-0 w-full h-1 bg-red-600 animate-pulse"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- ================= FIN NUEVO ================= -->
                     
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        
                         <!-- Opción Formulario -->
                         <div id="card-form" class="bg-white/5 border border-white/10 p-6 rounded-[35px] text-center flex flex-col items-center justify-between transition-all duration-500">
                             <h3 class="shift-title text-white" style="font-size: 26px;">FORMULARIO</h3>
@@ -168,7 +205,6 @@
                             <img src="we12345.jpeg" class="img-spin-3d" alt="Página">
                             <button id="btn-pag" onclick="Core.vote('pagina')" class="w-full bg-yellow-500 text-black font-black p-4 rounded-xl uppercase tracking-widest hover:bg-white transition mt-4 shadow-lg">Votar aquí</button>
                         </div>
-
                     </div>
 
                     <!-- Mensaje de confirmación de voto -->
@@ -209,6 +245,50 @@
 
             init: function() { 
                 this.initThree('globe-box'); 
+                this.initCountdown(); // INICIALIZA EL CRONÓMETRO AL CARGAR
+            },
+
+            // ================= LÓGICA DEL CRONÓMETRO =================
+            initCountdown: function() {
+                // Fecha objetivo: 23 de Agosto de 2026 a las 23:59:59
+                const targetDate = new Date("August 23, 2026 23:59:59").getTime();
+                
+                const timer = setInterval(() => {
+                    const now = new Date().getTime();
+                    const distance = targetDate - now;
+
+                    // Elementos del DOM
+                    const elDays = document.getElementById("cd-days");
+                    const elHours = document.getElementById("cd-hours");
+                    const elMins = document.getElementById("cd-minutes");
+                    const elSecs = document.getElementById("cd-seconds");
+
+                    // Si ya pasó la fecha
+                    if (distance < 0) {
+                        clearInterval(timer);
+                        if(elDays) {
+                            elDays.innerText = "00";
+                            elHours.innerText = "00";
+                            elMins.innerText = "00";
+                            elSecs.innerText = "00";
+                        }
+                        return;
+                    }
+
+                    // Cálculos de tiempo
+                    const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+                    const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                    const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+                    const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+                    // Imprimir resultados con 2 dígitos (ej: 09 en lugar de 9)
+                    if(elDays) {
+                        elDays.innerText = days.toString().padStart(2, '0');
+                        elHours.innerText = hours.toString().padStart(2, '0');
+                        elMins.innerText = minutes.toString().padStart(2, '0');
+                        elSecs.innerText = seconds.toString().padStart(2, '0');
+                    }
+                }, 1000);
             },
 
             startScan: async function() {
@@ -218,7 +298,6 @@
                 const overlay = document.getElementById('scanning-overlay'), msg = document.getElementById('loader-msg'), bar = document.getElementById('progress-bar');
                 overlay.style.display = 'flex';
                 
-                // Animación de 10 segundos
                 const steps = [
                     {p:"20%",t:"ESTABLECIENDO CONEXIÓN SEGURA..."},
                     {p:"40%",t:"BUSCANDO DNI EN PADRÓN..."},
@@ -238,14 +317,12 @@
                         this.alumno = snap.val(); 
                         this.alumno.dni = dni;
 
-                        // Modificar Interfaz
                         document.getElementById('step-1').classList.add('hidden-section');
                         document.getElementById('step-2').classList.remove('hidden-section');
                         document.getElementById('userName').innerText = this.alumno.Estudiante;
                         document.getElementById('userFac').innerText = this.alumno.Facultad;
                         document.getElementById('userDni').innerText = dni;
                         
-                        // INICIA LA LÓGICA DE VOTACIÓN A PRUEBA DE ERRORES
                         this.initVoting();
                         this.initThree('globe-box-2');
                     } else {
@@ -257,20 +334,15 @@
                 });
             },
 
-            // ================= LÓGICA DE VOTACIÓN (CORREGIDA) =================
             initVoting: function() {
                 const dni = this.alumno.dni;
-                
-                // 1. Escuchar conteo global para generar estadísticas automáticas
                 db.ref('sistema/votacion/resultados').on('value', snap => {
                     this.voteCounts = snap.val() || { formulario: 0, pagina: 0 };
-                    // Actualizar interfaz si el usuario ya votó
                     if (this.userVote) {
                         this.renderVoteState(true);
                     }
                 });
 
-                // 2. Escuchar si ESTE DNI ya ha votado antes
                 db.ref(`sistema/votacion/votos_usuarios/${dni}`).on('value', snap => {
                     if (snap.exists()) {
                         this.userVote = snap.val();
@@ -283,15 +355,19 @@
             },
 
             vote: function(opcion) {
-                // Validación front-end
                 if(this.userVote) {
                     Swal.fire('Atención', 'Ya has registrado tu voto anteriormente.', 'warning');
                     return;
                 }
                 
-                const dni = this.alumno.dni;
+                // VALIDACIÓN EXTRA: Si ya pasó la fecha límite, bloquea el voto
+                const targetDate = new Date("August 23, 2026 23:59:59").getTime();
+                if (new Date().getTime() > targetDate) {
+                    Swal.fire('Encuesta Cerrada', 'El periodo para votar ha finalizado.', 'error');
+                    return;
+                }
                 
-                // Mostrar alerta de carga bloqueante
+                const dni = this.alumno.dni;
                 Swal.fire({
                     title: 'Procesando Voto...',
                     html: 'Conectando con Firebase de manera segura',
@@ -300,21 +376,15 @@
                 });
 
                 const userRef = db.ref(`sistema/votacion/votos_usuarios/${dni}`);
-                
-                // 1. Validación en base de datos antes de registrar (Evita doble voto)
                 userRef.once('value').then(snap => {
                     if(snap.exists()) {
                         Swal.fire('Atención', 'Ya has registrado tu voto anteriormente.', 'warning');
                         return;
                     }
-                    
-                    // 2. Guarda el DNI con su respectivo voto
                     userRef.set(opcion).then(() => {
-                        // 3. Aumenta el contador global en Firebase (+1)
                         db.ref(`sistema/votacion/resultados/${opcion}`).transaction(
                             curr => (curr || 0) + 1
                         ).then(() => {
-                            // Cierra el cargando y muestra éxito
                             Swal.fire({
                                 title: '¡Voto Contado!',
                                 text: 'Tu voto fue guardado en el sistema general.',
@@ -339,17 +409,14 @@
                 const statusBox = document.getElementById('status-container');
                 const statusText = document.getElementById('status-text');
 
-                // Asegurar los números para el cálculo
                 const vForm = this.voteCounts.formulario || 0;
                 const vPag = this.voteCounts.pagina || 0;
                 const total = vForm + vPag;
                 
-                // Cálculo de porcentaje
                 const percForm = total === 0 ? 0 : Math.round((vForm / total) * 100);
                 const percPag = total === 0 ? 0 : Math.round((vPag / total) * 100);
 
                 if(!hasVoted) {
-                    // CAJA ESTADO DE VOTO (ROJO - NO VOTÓ)
                     statusBox.className = "text-center md:text-right bg-red-600/10 p-5 rounded-3xl border border-red-600/30 min-w-[200px] transition-all duration-500";
                     statusText.className = "text-3xl font-black text-red-500";
                     statusText.innerText = "NO VOTÓ";
@@ -359,7 +426,6 @@
                     btnForm.disabled = false;
                     btnPag.disabled = false;
                     
-                    // Clases por defecto
                     btnForm.className = "w-full bg-yellow-500 text-black font-black p-4 rounded-xl uppercase tracking-widest hover:bg-white transition mt-4 shadow-lg cursor-pointer";
                     btnPag.className = "w-full bg-yellow-500 text-black font-black p-4 rounded-xl uppercase tracking-widest hover:bg-white transition mt-4 shadow-lg cursor-pointer";
                     cardForm.className = "bg-white/5 border border-white/10 p-6 rounded-[35px] text-center flex flex-col items-center justify-between transition-all duration-300";
@@ -368,40 +434,31 @@
                     return;
                 }
 
-                // CAJA ESTADO DE VOTO (VERDE - VOTÓ)
                 statusBox.className = "text-center md:text-right bg-green-500/10 p-5 rounded-3xl border border-green-500/30 min-w-[200px] transition-all duration-500";
                 statusText.className = "text-3xl font-black text-green-500";
                 statusText.innerText = "VOTÓ";
 
-                // Bloquear botones y poner porcentajes reales en ellos
                 btnForm.innerText = `${percForm}% (${vForm} votos)`;
                 btnPag.innerText = `${percPag}% (${vPag} votos)`;
                 btnForm.disabled = true; 
                 btnPag.disabled = true;
 
-                // Colorear verde al elegido, rojo al que descartó
                 if(this.userVote === 'formulario') {
-                    // Formulario = Verde
                     btnForm.className = "w-full bg-green-500 text-white font-black p-4 rounded-xl uppercase tracking-widest mt-4 shadow-[0_0_20px_rgba(34,197,94,0.4)] cursor-not-allowed";
                     cardForm.className = "bg-green-500/10 border border-green-500 p-6 rounded-[35px] text-center flex flex-col items-center justify-between transition-all duration-300";
-                    // Página = Rojo
                     btnPag.className = "w-full bg-red-600 text-white font-black p-4 rounded-xl uppercase tracking-widest mt-4 cursor-not-allowed opacity-80";
                     cardPag.className = "bg-red-600/5 border border-red-600/50 p-6 rounded-[35px] text-center flex flex-col items-center justify-between transition-all duration-300";
                 } else {
-                    // Página = Verde
                     btnPag.className = "w-full bg-green-500 text-white font-black p-4 rounded-xl uppercase tracking-widest mt-4 shadow-[0_0_20px_rgba(34,197,94,0.4)] cursor-not-allowed";
                     cardPag.className = "bg-green-500/10 border border-green-500 p-6 rounded-[35px] text-center flex flex-col items-center justify-between transition-all duration-300";
-                    // Formulario = Rojo
                     btnForm.className = "w-full bg-red-600 text-white font-black p-4 rounded-xl uppercase tracking-widest mt-4 cursor-not-allowed opacity-80";
                     cardForm.className = "bg-red-600/5 border border-red-600/50 p-6 rounded-[35px] text-center flex flex-col items-center justify-between transition-all duration-300";
                 }
 
-                // Mostrar el mensaje inferior
                 msg.classList.remove('hidden');
                 msg.className = "mt-6 text-center text-[12px] font-black tracking-[2px] uppercase p-4 rounded-xl bg-green-500/20 text-green-400 border border-green-500/50 animate-fade-up";
                 msg.innerHTML = `<i class="fa-solid fa-circle-check text-lg mb-2"></i><br>TU VOTO FUE CONTADO EXITOSAMENTE.<br>VOTASTE POR: <span class="text-white">${this.userVote.toUpperCase()}</span>`;
             },
-            // ================= FIN LÓGICA VOTACIÓN =================
 
             handleNotRegistered: function(dni) {
                 Swal.fire({
