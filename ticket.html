@@ -8,7 +8,6 @@
     <!-- LIBRERÍAS EXTERNAS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script> 
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;800;900&family=Share+Tech+Mono&family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
@@ -116,19 +115,14 @@
             
             <!-- PASO 1 (BÚSQUEDA) -->
             <div id="step-1" class="text-center animate-fade-up">
-                <h1 class="text-5xl md:text-6xl font-black uppercase italic tracking-tighter mb-4 leading-none">Tickets <span class="text-yellow-500">Oficiales</span></h1>
+                <h1 class="text-5xl md:text-6xl font-black uppercase italic tracking-tighter mb-4 leading-none">Acceso <span class="text-yellow-500">Oficial</span></h1>
                 <p class="text-gray-400 text-[11px] uppercase tracking-[3px] max-w-xl mx-auto mb-10 font-bold leading-relaxed">
-                    SISTEMA DE PASES DIGITALES - RUTA VENTANILLA. <span class="text-yellow-500">CONEXIÓN INSTANTÁNEA FIREBASE</span>.
+                    SISTEMA DE VERIFICACIÓN ESTUDIANTIL. <span class="text-yellow-500">CONEXIÓN INSTANTÁNEA FIREBASE</span>.
                 </p>
                 
                 <div class="max-w-xs mx-auto space-y-6">
                     <input type="text" id="dniInput" class="input-tech" placeholder="INGRESE DNI" maxlength="8">
                     <button onclick="Core.startScan()" class="bg-yellow-500 text-black font-black p-5 rounded-2xl w-full uppercase tracking-widest hover:bg-white transition shadow-xl">Verificar Alumno</button>
-                    
-                    <div class="grid grid-cols-2 gap-3">
-                        <a href="lista.html" target="_blank" class="bg-white/5 border border-white/10 p-4 rounded-2xl text-[9px] font-black uppercase tracking-widest hover:bg-yellow-500 hover:text-black transition flex items-center justify-center gap-2"><i class="fa-solid fa-list-ul"></i> Lista de HOY</a>
-                        <a href="tutorial.html" class="bg-white/5 border border-white/10 p-4 rounded-2xl text-[9px] font-black uppercase tracking-widest hover:bg-yellow-500 hover:text-black transition flex items-center justify-center gap-2"><i class="fa-solid fa-play"></i> Tutorial</a>
-                    </div>
                     <!-- GLOBO 1 -->
                     <div id="globe-box"></div>
                 </div>
@@ -148,7 +142,7 @@
                         </div>
                     </div>
                     
-                    <!-- NUEVA CAJA DE ESTADO DE VOTO -->
+                    <!-- CAJA DE ESTADO DE VOTO -->
                     <div id="status-container" class="text-center md:text-right bg-red-600/10 p-5 rounded-3xl border border-red-600/30 min-w-[200px] transition-all duration-500">
                         <p class="text-[9px] text-gray-400 font-black uppercase mb-1 tracking-widest">Estado de Voto</p>
                         <div class="text-3xl font-black text-red-500" id="status-text">NO VOTÓ</div>
@@ -181,7 +175,7 @@
                     <div id="vote-message" class="mt-6 text-center text-[12px] font-black tracking-[2px] uppercase hidden p-4 rounded-xl transition-all duration-500"></div>
                 </div>
                 
-                <!-- GLOBO 2 (Adorno Visual Inferior) -->
+                <!-- GLOBO 2 -->
                 <div id="globe-box-2"></div>
             </div>
 
@@ -224,10 +218,10 @@
                 const overlay = document.getElementById('scanning-overlay'), msg = document.getElementById('loader-msg'), bar = document.getElementById('progress-bar');
                 overlay.style.display = 'flex';
                 
-                // HUD 10 SEGUNDOS (Simulado con Promesas)
+                // Animación de 10 segundos
                 const steps = [
                     {p:"20%",t:"ESTABLECIENDO CONEXIÓN SEGURA..."},
-                    {p:"40%",t:"BUSCANDO DNI EN PADRÓN 2024..."},
+                    {p:"40%",t:"BUSCANDO DNI EN PADRÓN..."},
                     {p:"60%",t:"VALIDANDO MATRÍCULA Y FACULTAD..."},
                     {p:"85%",t:"SINCRONIZANDO CON NUBE FIREBASE..."},
                     {p:"100%",t:"AUTORIZACIÓN COMPLETADA"}
@@ -241,36 +235,44 @@
                 db.ref('alumnos/' + dni).once('value').then(snap => {
                     overlay.style.display = 'none';
                     if(snap.exists()){
-                        this.alumno = snap.val(); this.alumno.dni = dni;
+                        this.alumno = snap.val(); 
+                        this.alumno.dni = dni;
+
+                        // Modificar Interfaz
                         document.getElementById('step-1').classList.add('hidden-section');
                         document.getElementById('step-2').classList.remove('hidden-section');
                         document.getElementById('userName').innerText = this.alumno.Estudiante;
                         document.getElementById('userFac').innerText = this.alumno.Facultad;
                         document.getElementById('userDni').innerText = dni;
                         
-                        // INICIA EL SISTEMA DE VOTACIONES
+                        // INICIA LA LÓGICA DE VOTACIÓN A PRUEBA DE ERRORES
                         this.initVoting();
-
                         this.initThree('globe-box-2');
                     } else {
                         this.handleNotRegistered(dni);
                     }
+                }).catch(err => {
+                    overlay.style.display = 'none';
+                    Swal.fire('Error de Conexión', 'Problema al conectar con la base de datos.', 'error');
                 });
             },
 
-            // ================= LÓGICA DE VOTACIÓN =================
+            // ================= LÓGICA DE VOTACIÓN (CORREGIDA) =================
             initVoting: function() {
                 const dni = this.alumno.dni;
                 
-                // Escuchar conteo global para los porcentajes
+                // 1. Escuchar conteo global para generar estadísticas automáticas
                 db.ref('sistema/votacion/resultados').on('value', snap => {
                     this.voteCounts = snap.val() || { formulario: 0, pagina: 0 };
-                    if(this.userVote) this.renderVoteState(true);
+                    // Actualizar interfaz si el usuario ya votó
+                    if (this.userVote) {
+                        this.renderVoteState(true);
+                    }
                 });
 
-                // Verificar si el usuario ya votó
+                // 2. Escuchar si ESTE DNI ya ha votado antes
                 db.ref(`sistema/votacion/votos_usuarios/${dni}`).on('value', snap => {
-                    if(snap.exists()) {
+                    if (snap.exists()) {
                         this.userVote = snap.val();
                         this.renderVoteState(true);
                     } else {
@@ -281,22 +283,50 @@
             },
 
             vote: function(opcion) {
+                // Validación front-end
                 if(this.userVote) {
                     Swal.fire('Atención', 'Ya has registrado tu voto anteriormente.', 'warning');
                     return;
                 }
+                
                 const dni = this.alumno.dni;
                 
-                // Se envía el voto a la base de datos
-                db.ref(`sistema/votacion/votos_usuarios/${dni}`).set(opcion);
-                db.ref(`sistema/votacion/resultados/${opcion}`).transaction(curr => (curr || 0) + 1);
-                
+                // Mostrar alerta de carga bloqueante
                 Swal.fire({
-                    title: '¡Voto Contado!',
-                    icon: 'success',
-                    background: '#050505', color: '#fff', confirmButtonColor: '#ffc107',
-                    timer: 2000,
-                    showConfirmButton: false
+                    title: 'Procesando Voto...',
+                    html: 'Conectando con Firebase de manera segura',
+                    allowOutsideClick: false,
+                    didOpen: () => { Swal.showLoading(); }
+                });
+
+                const userRef = db.ref(`sistema/votacion/votos_usuarios/${dni}`);
+                
+                // 1. Validación en base de datos antes de registrar (Evita doble voto)
+                userRef.once('value').then(snap => {
+                    if(snap.exists()) {
+                        Swal.fire('Atención', 'Ya has registrado tu voto anteriormente.', 'warning');
+                        return;
+                    }
+                    
+                    // 2. Guarda el DNI con su respectivo voto
+                    userRef.set(opcion).then(() => {
+                        // 3. Aumenta el contador global en Firebase (+1)
+                        db.ref(`sistema/votacion/resultados/${opcion}`).transaction(
+                            curr => (curr || 0) + 1
+                        ).then(() => {
+                            // Cierra el cargando y muestra éxito
+                            Swal.fire({
+                                title: '¡Voto Contado!',
+                                text: 'Tu voto fue guardado en el sistema general.',
+                                icon: 'success',
+                                background: '#050505', color: '#fff', confirmButtonColor: '#ffc107',
+                                timer: 2000,
+                                showConfirmButton: false
+                            });
+                        });
+                    }).catch(error => {
+                        Swal.fire('Error', 'Hubo un error al procesar el voto', 'error');
+                    });
                 });
             },
 
@@ -306,13 +336,17 @@
                 const cardForm = document.getElementById('card-form');
                 const cardPag = document.getElementById('card-pag');
                 const msg = document.getElementById('vote-message');
-
                 const statusBox = document.getElementById('status-container');
                 const statusText = document.getElementById('status-text');
 
-                const total = (this.voteCounts.formulario || 0) + (this.voteCounts.pagina || 0);
-                const percForm = total === 0 ? 0 : Math.round(((this.voteCounts.formulario || 0) / total) * 100);
-                const percPag = total === 0 ? 0 : Math.round(((this.voteCounts.pagina || 0) / total) * 100);
+                // Asegurar los números para el cálculo
+                const vForm = this.voteCounts.formulario || 0;
+                const vPag = this.voteCounts.pagina || 0;
+                const total = vForm + vPag;
+                
+                // Cálculo de porcentaje
+                const percForm = total === 0 ? 0 : Math.round((vForm / total) * 100);
+                const percPag = total === 0 ? 0 : Math.round((vPag / total) * 100);
 
                 if(!hasVoted) {
                     // CAJA ESTADO DE VOTO (ROJO - NO VOTÓ)
@@ -322,10 +356,12 @@
 
                     btnForm.innerText = "VOTAR AQUÍ";
                     btnPag.innerText = "VOTAR AQUÍ";
+                    btnForm.disabled = false;
+                    btnPag.disabled = false;
                     
-                    // Clases por defecto (Amarillo)
-                    btnForm.className = "w-full bg-yellow-500 text-black font-black p-4 rounded-xl uppercase tracking-widest hover:bg-white transition mt-4 shadow-lg";
-                    btnPag.className = "w-full bg-yellow-500 text-black font-black p-4 rounded-xl uppercase tracking-widest hover:bg-white transition mt-4 shadow-lg";
+                    // Clases por defecto
+                    btnForm.className = "w-full bg-yellow-500 text-black font-black p-4 rounded-xl uppercase tracking-widest hover:bg-white transition mt-4 shadow-lg cursor-pointer";
+                    btnPag.className = "w-full bg-yellow-500 text-black font-black p-4 rounded-xl uppercase tracking-widest hover:bg-white transition mt-4 shadow-lg cursor-pointer";
                     cardForm.className = "bg-white/5 border border-white/10 p-6 rounded-[35px] text-center flex flex-col items-center justify-between transition-all duration-300";
                     cardPag.className = "bg-white/5 border border-white/10 p-6 rounded-[35px] text-center flex flex-col items-center justify-between transition-all duration-300";
                     msg.classList.add('hidden');
@@ -337,12 +373,13 @@
                 statusText.className = "text-3xl font-black text-green-500";
                 statusText.innerText = "VOTÓ";
 
-                // Bloquear botones y poner porcentajes en ellos
-                btnForm.innerText = `${percForm}% (${this.voteCounts.formulario || 0} votos)`;
-                btnPag.innerText = `${percPag}% (${this.voteCounts.pagina || 0} votos)`;
-                btnForm.disabled = true; btnPag.disabled = true;
+                // Bloquear botones y poner porcentajes reales en ellos
+                btnForm.innerText = `${percForm}% (${vForm} votos)`;
+                btnPag.innerText = `${percPag}% (${vPag} votos)`;
+                btnForm.disabled = true; 
+                btnPag.disabled = true;
 
-                // Colorear verde al elegido, rojo al no elegido
+                // Colorear verde al elegido, rojo al que descartó
                 if(this.userVote === 'formulario') {
                     // Formulario = Verde
                     btnForm.className = "w-full bg-green-500 text-white font-black p-4 rounded-xl uppercase tracking-widest mt-4 shadow-[0_0_20px_rgba(34,197,94,0.4)] cursor-not-allowed";
@@ -359,7 +396,7 @@
                     cardForm.className = "bg-red-600/5 border border-red-600/50 p-6 rounded-[35px] text-center flex flex-col items-center justify-between transition-all duration-300";
                 }
 
-                // Mostrar el mensaje inferior de éxito
+                // Mostrar el mensaje inferior
                 msg.classList.remove('hidden');
                 msg.className = "mt-6 text-center text-[12px] font-black tracking-[2px] uppercase p-4 rounded-xl bg-green-500/20 text-green-400 border border-green-500/50 animate-fade-up";
                 msg.innerHTML = `<i class="fa-solid fa-circle-check text-lg mb-2"></i><br>TU VOTO FUE CONTADO EXITOSAMENTE.<br>VOTASTE POR: <span class="text-white">${this.userVote.toUpperCase()}</span>`;
@@ -370,12 +407,9 @@
                 Swal.fire({
                     title: '<span style="color:#ffc107">IDENTIDAD NO ENCONTRADA</span>',
                     html: `<div style="text-align: left; font-size: 14px; color: #ccc;">
-                        <p>El DNI <b>${dni}</b> no figura en la base de datos oficial del semestre actual.</p><br>
-                        <b>¿Por qué ocurre esto?</b><ul style="margin-left:20px; list-style:circle; margin-top:10px;">
-                        <li>No has realizado tu registro de ruta.</li><li>Tu facultad no ha enviado el padrón.</li></ul><br>
-                        <p><b>Acción:</b> Pulsa abajo para registrarte ahora mismo.</p></div>`,
-                    icon: 'warning', background: '#050505', color: '#fff', confirmButtonText: 'IR A REGISTRO', showCancelButton: true, cancelButtonText: 'REINTENTAR', confirmButtonColor: '#ffc107'
-                }).then((r) => { if (r.isConfirmed) window.location.href = "registro.html"; });
+                        <p>El DNI <b>${dni}</b> no figura en la base de datos oficial del padrón actual.</p></div>`,
+                    icon: 'warning', background: '#050505', color: '#fff', confirmButtonText: 'ENTENDIDO', confirmButtonColor: '#ffc107'
+                });
             },
 
             initThree: function(id) {
