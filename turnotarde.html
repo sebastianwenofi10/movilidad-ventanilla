@@ -3,8 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>UNAC | Pase Digital Oficial</title>
+    <title>UNAC | Pase Digital Tarde</title>
     
+    <!-- LIBRERÍAS EXTERNAS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
@@ -12,96 +13,97 @@
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;800;900&family=Share+Tech+Mono&family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
 
+    <!-- FIREBASE COMPAT -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
 
     <style>
-        :root { --accent: #ffc107; --dark: #050505; }
+        :root { --accent: #ffc107; --dark: #050505; --fire: #ff4500; --white-clean: #f8f9fa; }
         body, html { margin: 0; padding: 0; min-height: 100vh; background-color: var(--dark); font-family: 'Inter', sans-serif; color: #ffffff; overflow-x: hidden; user-select: none; }
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-fade-up { animation: fadeInUp 0.8s ease-out forwards; }
         
+        /* FONDO ESTILO PRINCIPAL */
         .main-wrapper { 
             position: relative; z-index: 10; 
-            background: radial-gradient(circle at 50% 50%, #0f172a 0%, #050505 100%);
-            min-height: 100vh; width: 100%; display: flex; flex-direction: column; 
+            background: radial-gradient(circle at 50% 50%, rgba(20, 20, 20, 0.4) 0%, rgba(5, 5, 5, 1) 100%), url('https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?auto=format&fit=crop&q=80&w=1920'); 
+            background-size: cover; background-position: center; background-attachment: fixed; min-height: 100vh; width: 100%; display: flex; flex-direction: column; 
         }
 
-        #scanning-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.98); z-index: 9999; display: none; flex-direction: column; align-items: center; justify-content: center; backdrop-filter: blur(25px); }
+        /* HUD DE CARGA AVANZADO */
+        #scanning-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.98); z-index: 9999; display: none; flex-direction: column; align-items: center; justify-content: center; text-align: center; backdrop-filter: blur(25px); }
+        .hud-box { width: 320px; height: 320px; border: 2px solid rgba(255, 193, 7, 0.2); position: relative; border-radius: 40px; background: rgba(255,255,255,0.02); overflow: hidden; }
+        .hud-line { position: absolute; width: 100%; height: 4px; background: var(--accent); top: 0; animation: scanLine 2.5s linear infinite; box-shadow: 0 0 30px var(--accent); }
+        @keyframes scanLine { 0% { top: 0; } 100% { top: 100%; } }
 
-        .keypad-btn { background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 20px; color: white; font-size: 24px; font-weight: 800; padding: 22px 0; transition: all 0.2s; cursor: pointer; }
-        .keypad-btn:active { background: var(--accent); color: black; transform: scale(0.92); }
+        /* PANTALLA DE BLOQUEO */
+        #blocking-overlay { position: fixed; inset: 0; background: rgba(5,5,5,0.98); z-index: 10000; display: none; flex-direction: column; align-items: center; justify-content: center; text-align: center; backdrop-filter: blur(20px); transition: all 0.3s ease; }
 
-        .ticket-container { width: 100%; max-width: 380px; margin: 0 auto; filter: drop-shadow(0 40px 80px rgba(0,0,0,0.6)); }
-        
-        .ticket-top { background: #fff; color: #000; border-radius: 40px 40px 0 0; padding-bottom: 5px; }
-        .ticket-bottom { background: #fff; color: #000; border-radius: 0 0 40px 40px; border-top: 2px dashed #e2e8f0; padding: 30px; position: relative; }
-        
-        .ticket-bottom::before, .ticket-bottom::after { content: ''; position: absolute; width: 30px; height: 30px; background: var(--dark); border-radius: 50%; top: -15px; }
-        .ticket-bottom::before { left: -15px; }
-        .ticket-bottom::after { right: -15px; }
-
-        .seat-status { padding: 15px; border-radius: 22px; font-weight: 900; font-size: 13px; text-transform: uppercase; display: flex; align-items: center; justify-content: center; gap: 10px; margin: 15px 0; }
-        .seat-ok { background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
-        .seat-stand { background: #fef3c7; color: #92400e; border: 1px solid #fde68a; }
-
-        .info-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; text-align: left; }
-        .info-label { font-size: 8px; font-weight: 800; color: #94a3b8; text-transform: uppercase; letter-spacing: 1px; }
-        .info-value { font-size: 11px; font-weight: 800; color: #0f172a; text-transform: uppercase; line-height: 1.2; }
-
-        .instruction-card { background: #f8fafc; border-radius: 20px; padding: 15px; border-left: 5px solid var(--accent); margin-top: 20px; }
+        /* TECLADO DE FIRMA ESTILO GLASSMORPHISM */
+        .glass-panel { background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.08); backdrop-filter: blur(15px); border-radius: 40px; }
+        .keypad-btn { background: rgba(0, 0, 0, 0.5); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 20px; color: white; font-size: 24px; font-weight: 800; padding: 22px 0; transition: 0.2s; cursor: pointer; box-shadow: 0 5px 15px rgba(0,0,0,0.5); }
+        .keypad-btn:active { background: var(--accent); color: black; transform: scale(0.92); border-color: var(--accent); }
+        .input-display { width: 100%; background: rgba(0,0,0,0.7); border: 1px solid rgba(255,193,7,0.3); padding: 22px; border-radius: 20px; text-align: center; font-size: 32px; font-weight: 900; color: #fff; outline: none; letter-spacing: 10px; }
 
         .hidden-section { display: none !important; }
-        #globe-area { width: 100%; height: 180px; pointer-events: none; opacity: 0.15; }
+        #globe-area { width: 100%; height: 200px; pointer-events: none; opacity: 0.8; }
     </style>
 </head>
 <body>
 
-    <div id="blocking-overlay" class="fixed inset-0 bg-[#050505] z-[10000] flex flex-col items-center justify-center text-center p-6" style="display: none;">
-        <i class="fa-solid fa-shield-halved text-7xl text-red-600 mb-6 animate-pulse"></i>
-        <h2 class="text-3xl font-black text-white uppercase tracking-tighter">Sincronización Expirada</h2>
-        <p id="block-reason" class="text-gray-500 text-sm mt-4 mb-8 max-w-xs">Su tiempo de sesión ha caducado o el acceso no es válido. Debe volver al portal para re-validar.</p>
-        <a href="ticket.html" class="bg-white text-black font-black px-10 py-4 rounded-2xl text-xs uppercase tracking-widest">Regresar al Portal</a>
-    </div>
-
+    <!-- HUD DE CARGA -->
     <div id="scanning-overlay">
-        <div class="relative w-20 h-20 mb-6">
-            <div class="absolute inset-0 border-4 border-white/5 rounded-full"></div>
-            <div class="absolute inset-0 border-t-4 border-yellow-500 rounded-full animate-spin"></div>
-            <div class="absolute inset-0 flex items-center justify-center">
-                <i class="fa-solid fa-bus text-yellow-500 text-2xl"></i>
+        <div class="hud-box">
+            <div class="hud-line"></div>
+            <div class="absolute inset-0 flex flex-col items-center justify-center p-8">
+                <i class="fa-solid fa-fingerprint text-6xl text-yellow-500/40 mb-6 animate-pulse"></i>
+                <p id="loader-msg" class="font-mono text-[11px] tracking-[3px] text-yellow-500 uppercase font-black">VALIDANDO IDENTIDAD...</p>
             </div>
         </div>
-        <p class="font-mono text-[9px] tracking-[5px] text-white uppercase">Validando Acceso...</p>
+        <p class="text-[9px] text-gray-500 font-bold uppercase mt-6 tracking-[6px]">SISTEMA SEGURIDAD BIOMÉTRICA UNAC</p>
+    </div>
+
+    <!-- PANTALLA DE BLOQUEO DE SEGURIDAD DINÁMICA -->
+    <div id="blocking-overlay" style="border: 15px solid #ef4444;">
+        <i id="block-icon" class="fa-solid fa-shield-halved text-7xl text-red-600 mb-6 animate-bounce"></i>
+        <h2 id="block-title" class="text-3xl font-black text-white uppercase tracking-tighter">ACCESO DENEGADO</h2>
+        <div class="bg-black/50 border border-white/10 p-6 rounded-2xl max-w-sm mt-4 mb-8">
+            <p id="block-reason" class="text-gray-300 text-xs font-bold uppercase tracking-widest leading-relaxed">Su sesión caducó o el delegado cerró el turno.</p>
+        </div>
+        <a href="ticket.html" class="bg-yellow-500 text-black font-black px-10 py-4 rounded-2xl text-xs uppercase tracking-widest shadow-xl hover:bg-white transition">Regresar al Portal</a>
     </div>
 
     <div class="main-wrapper">
-        <header class="w-full max-w-5xl mx-auto p-6 flex justify-between items-center relative z-20">
+        <!-- HEADER -->
+        <header class="w-full max-w-5xl mx-auto p-6 flex justify-between items-center relative z-20 animate-fade-up">
             <div class="flex items-center gap-3">
-                <div class="w-10 h-10 bg-yellow-500 rounded-2xl flex items-center justify-center shadow-lg shadow-yellow-500/20">
-                    <i class="fa-solid fa-qrcode text-black text-xl"></i>
-                </div>
-                <div class="flex flex-col">
-                    <span class="text-[11px] font-black tracking-widest text-white uppercase leading-none">VALIDACIÓN DIGITAL</span>
-                    <span class="text-[9px] text-yellow-500 font-bold uppercase mt-1">Ruta Ventanilla - Tarde</span>
+                <div class="w-9 h-9 bg-yellow-500 rounded flex items-center justify-center shadow-lg"><i class="fa-solid fa-bus text-black text-lg"></i></div>
+                <div class="flex flex-col text-left leading-none uppercase">
+                    <span class="text-[10px] font-black tracking-widest leading-none text-white">FIRMA DIGITAL</span>
+                    <span class="text-[9px] text-yellow-500 font-bold">Ruta Ventanilla</span>
                 </div>
             </div>
-            <div id="timer-display" class="text-[10px] font-black bg-red-600/20 text-red-500 px-3 py-1 rounded-full border border-red-500/50 uppercase">Sesión Activa</div>
+            <div class="text-[9px] font-black bg-red-600/20 text-red-500 px-3 py-1.5 rounded-lg border border-red-500 uppercase flex items-center gap-2">
+                <i class="fa-solid fa-circle text-[6px] animate-ping"></i> LÍMITE: 1 MIN
+            </div>
         </header>
 
         <main class="flex-grow flex flex-col items-center justify-center px-6 pb-12 relative z-20">
             
+            <!-- PASO 1 : FIRMA DIGITAL (TECLADO) -->
             <div id="step-1" class="w-full max-w-sm animate-fade-up">
-                <div class="bg-white/5 border border-white/10 p-8 rounded-[45px] shadow-2xl backdrop-blur-xl">
-                    <div class="text-center mb-10">
-                        <i class="fa-solid fa-fingerprint text-yellow-500 text-3xl mb-4"></i>
-                        <h3 class="text-[10px] font-bold text-gray-400 tracking-[4px] uppercase">Verificación de Firma</h3>
-                        <p class="text-[11px] text-white/60">Confirme su DNI para la cola</p>
+                <div class="glass-panel p-8 shadow-2xl">
+                    <div class="text-center mb-8">
+                        <h3 class="text-3xl font-black uppercase italic tracking-tighter">Confirmación</h3>
+                        <p class="text-[10px] text-gray-400 tracking-[2px] uppercase mt-1 font-bold">Digite su DNI oficial de alumno</p>
                     </div>
 
-                    <div class="mb-8">
-                        <input type="text" id="dniDisplay" class="w-full bg-black/40 border border-white/10 p-6 rounded-3xl text-center text-4xl font-black text-white tracking-[6px] outline-none" placeholder="••••••••" readonly>
+                    <div class="mb-8 relative">
+                        <input type="text" id="dniDisplay" class="input-display" placeholder="••••••••" readonly>
                     </div>
 
-                    <div class="grid grid-cols-3 gap-3 mb-8">
+                    <!-- TECLADO NUMÉRICO -->
+                    <div class="grid grid-cols-3 gap-4 mb-8">
                         <button onclick="Core.pressKey('1')" class="keypad-btn">1</button>
                         <button onclick="Core.pressKey('2')" class="keypad-btn">2</button>
                         <button onclick="Core.pressKey('3')" class="keypad-btn">3</button>
@@ -116,69 +118,83 @@
                         <button onclick="Core.pressKey('backspace')" class="keypad-btn text-yellow-500"><i class="fa-solid fa-delete-left"></i></button>
                     </div>
 
-                    <button onclick="Core.submitDni()" class="bg-yellow-500 text-black font-black p-5 rounded-3xl w-full uppercase text-xs tracking-widest shadow-xl">EMITIR PASE DIGITAL</button>
+                    <button onclick="Core.submitDni()" class="bg-yellow-500 text-black font-black p-5 rounded-2xl w-full uppercase tracking-widest hover:bg-white transition shadow-[0_0_20px_rgba(255,193,7,0.4)]">Emitir Ticket</button>
                 </div>
             </div>
 
-            <div id="step-3" class="hidden-section w-full animate-fade-up">
-                <div class="ticket-container">
-                    <div class="ticket-top">
-                        <div class="bg-black text-white p-6 rounded-t-[40px] text-center border-b-4 border-yellow-500">
-                            <div class="flex items-center justify-center gap-3 mb-1">
-                                <i class="fa-solid fa-bus text-yellow-500"></i>
-                                <h2 class="text-base font-black tracking-[2px] uppercase">Boarding Pass</h2>
-                            </div>
-                            <p class="text-[8px] font-bold text-gray-500 uppercase tracking-[3px]">Universidad Nacional del Callao</p>
+            <!-- PASO 2 : TICKET GENERADO -->
+            <div id="step-3" class="hidden-section w-full animate-fade-up text-center">
+                
+                <div class="relative bg-white pb-6 rounded-[40px] overflow-hidden shadow-[0_30px_60px_rgba(0,0,0,0.8)] border border-white/10 max-w-sm mx-auto">
+                    
+                    <!-- CABECERA DEL TICKET -->
+                    <div class="bg-[#050505] text-white p-6 text-center border-b-[6px] border-yellow-500 rounded-t-[40px] relative">
+                        <h2 class="text-xl font-black uppercase tracking-widest font-['Montserrat']">Movilidad UNAC</h2>
+                        <p class="text-[9px] text-yellow-500 tracking-[3px] mt-1 font-bold">PASE DIGITAL AUTORIZADO</p>
+                        <div class="absolute -bottom-3 left-[-10px] w-6 h-6 bg-[#050505] rounded-full"></div>
+                        <div class="absolute -bottom-3 right-[-10px] w-6 h-6 bg-[#050505] rounded-full"></div>
+                    </div>
+
+                    <div class="px-8 pt-6">
+                        <!-- FECHA -->
+                        <p id="t-fecha" class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-4"></p>
+                        
+                        <!-- ESTADO DE ASIENTO -->
+                        <div class="bg-green-100 border-2 border-green-500 text-green-700 px-6 py-4 rounded-2xl flex items-center justify-center gap-3 shadow-lg shadow-green-500/20 mb-6 mx-auto w-full max-w-[250px]">
+                            <i class="fa-solid fa-chair text-3xl"></i>
+                            <span id="seat-area" class="text-3xl font-black uppercase tracking-tighter font-['Montserrat']">ASIENTO</span>
+                        </div>
+
+                        <!-- CÓDIGO QR -->
+                        <div class="flex justify-center mb-6">
+                            <div id="qrcode-vip" class="p-3 bg-white border-2 border-gray-200 rounded-3xl shadow-sm"></div>
                         </div>
                         
-                        <div class="p-8">
-                            <div id="seat-box" class="seat-status">
-                                <i id="seat-icon"></i>
-                                <span id="seat-text">---</span>
+                        <!-- DATOS COMPLETA -->
+                        <div class="bg-gray-50 border border-gray-200 rounded-[25px] p-5 mb-5 text-left shadow-inner">
+                            <div class="border-b border-gray-200 pb-2 mb-2">
+                                <p class="text-[7px] text-gray-500 font-bold uppercase tracking-widest">Estudiante Autorizado</p>
+                                <p id="t-nom" class="text-xs font-black text-gray-900 uppercase leading-tight mt-1"></p>
                             </div>
-
-                            <div class="info-grid mt-6">
-                                <div class="col-span-2 border-b border-gray-100 pb-3">
-                                    <span class="info-label">Pasajero Autorizado</span>
-                                    <p id="t-nom" class="info-value">---</p>
+                            <div class="grid grid-cols-2 gap-4 border-b border-gray-200 pb-2 mb-2">
+                                <div>
+                                    <p class="text-[7px] text-gray-500 font-bold uppercase tracking-widest">DNI</p>
+                                    <p id="t-dni" class="text-[11px] font-black text-gray-900 mt-1"></p>
                                 </div>
-                                <div class="border-r border-gray-100 pr-2 pt-2">
-                                    <span class="info-label">DNI Estudiante</span>
-                                    <p id="t-dni" class="info-value">---</p>
-                                </div>
-                                <div class="pl-2 pt-2">
-                                    <span class="info-label">Fecha Ticket</span>
-                                    <p id="t-fecha" class="info-value">---</p>
-                                </div>
-                                <div class="border-r border-gray-100 pr-2 pt-2">
-                                    <span class="info-label">Hora Emisión</span>
-                                    <p id="t-hora" class="info-value text-blue-600">---</p>
-                                </div>
-                                <div class="pl-2 pt-2">
-                                    <span class="info-label">Ruta</span>
-                                    <p class="info-value">Ventanilla</p>
+                                <div>
+                                    <p class="text-[7px] text-gray-500 font-bold uppercase tracking-widest">Código</p>
+                                    <p id="t-cod" class="text-[11px] font-black text-gray-900 mt-1"></p>
                                 </div>
                             </div>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <p class="text-[7px] text-gray-500 font-bold uppercase tracking-widest">Hora Emisión</p>
+                                    <p id="t-hora" class="text-[11px] font-black text-blue-600 mt-1"></p>
+                                </div>
+                                <div>
+                                    <p class="text-[7px] text-gray-500 font-bold uppercase tracking-widest">Turno</p>
+                                    <div class="bg-[#050505] text-yellow-500 text-[10px] px-2 py-1 rounded-md font-black inline-block mt-1 uppercase">TARDE</div>
+                                </div>
+                            </div>
+                        </div>
 
-                            <div class="instruction-card">
-                                <p class="text-[9px] font-extrabold text-gray-700 leading-tight">
-                                    <i class="fa-solid fa-qrcode mr-2 text-yellow-600"></i>
-                                    IMPORTANTE: Este ticket DEBE ser escaneado por el delegado de movilidad al abordar para validar su ingreso.
+                        <!-- INSTRUCCIÓN OBLIGATORIA DETALLADA -->
+                        <div class="bg-yellow-50 border-l-4 border-yellow-500 p-4 rounded-r-xl text-left shadow-sm">
+                            <div class="flex gap-3 items-start">
+                                <i class="fa-solid fa-triangle-exclamation text-yellow-600 mt-0.5 text-lg"></i>
+                                <p class="text-[9px] font-medium text-gray-800 leading-relaxed text-justify">
+                                    <span class="text-black font-black uppercase block mb-1 tracking-widest text-[10px]">Validación Obligatoria</span>
+                                    Este pase digital es personal e intransferible. Para hacer efectivo su viaje, es estrictamente obligatorio formar la cola y <strong class="text-black">presentar este código QR para ser escaneado por el delegado</strong> en la puerta del bus. Sin esta verificación, perderá su acceso.
                                 </p>
                             </div>
                         </div>
                     </div>
-
-                    <div class="ticket-bottom text-center">
-                        <div id="qrcode-vip" class="inline-block p-4 bg-white border-2 border-gray-100 rounded-[30px] mb-4"></div>
-                        <div class="flex flex-col items-center">
-                            <span class="text-[10px] font-black text-gray-800 uppercase tracking-[2px]">Firma Digital UNAC</span>
-                            <span class="text-[8px] font-bold text-gray-400 mt-1 uppercase italic">Personal e Intransferible</span>
-                        </div>
-                    </div>
                 </div>
+
+                <button onclick="window.location.href='ticket.html'" class="mt-8 bg-white/5 border border-white/10 text-white font-black px-10 py-4 rounded-xl uppercase tracking-widest text-[10px] hover:bg-yellow-500 hover:text-black transition shadow-lg">Finalizar y Salir</button>
             </div>
 
+            <!-- GLOBO 3D -->
             <div id="globe-area" class="mt-4"></div>
         </main>
     </div>
@@ -187,7 +203,7 @@
         const firebaseConfig = {
             apiKey: "AIzaSyBxaeAc2nq7iEeiLejvja3lKGwR4E09QS4",
             authDomain: "ventanilla-unac.firebaseapp.com",
-            databaseURL: "https://ventanilla-unac-default-rtdb.firebaseio.com",
+            databaseURL: "https://unac-ventanilla-default-rtdb.firebaseio.com", 
             projectId: "ventanilla-unac",
             storageBucket: "ventanilla-unac.appspot.com",
             messagingSenderId: "245380540222",
@@ -197,42 +213,102 @@
         const db = firebase.database();
 
         let typedDni = "";
+        let serverTimeOffset = 0;
+        
+        // Variables globales para la sincronización perfecta
+        let turnoDataLoaded = false;
+        window.estadoTurno = { activo: false, cupos: 40 };
 
         const Core = {
             init: function() { 
-                this.checkSecurity(); 
+                // 1. Sincroniza la hora con Google Firebase
+                db.ref('.info/serverTimeOffset').on('value', snap => {
+                    serverTimeOffset = snap.val() || 0;
+                });
+
+                // 2. LISTENER EN TIEMPO REAL: Se conecta permanentemente al panel del Delegado
+                db.ref('sistema/config').on('value', snap => {
+                    const data = snap.val() || {};
+                    window.estadoTurno = {
+                        activo: data.tarde_activo === true,
+                        cupos: data.cupos_maximos || 40
+                    };
+                    turnoDataLoaded = true; // Confirma que ya leyó la base de datos real
+                    this.reaccionarAlDelegado(); // Función reactiva
+                });
+
                 this.initThree(); 
-                // Revisión prudente cada 10 segundos
-                setInterval(() => this.checkSecurity(), 10000);
+                
+                // 3. Evalúa SÓLO el tiempo de 1 minuto constantemente
+                setInterval(() => this.checkSecurityTime(), 1000);
             },
 
-            checkSecurity: async function() {
+            getRealTime: function() {
+                return new Date(Date.now() + serverTimeOffset);
+            },
+
+            // FUNCIÓN PARA MOSTRAR PANTALLA DE BLOQUEO
+            showBlockScreen: function(tipo, cuposMax = 0) {
+                const overlay = document.getElementById('blocking-overlay');
+                const title = document.getElementById('block-title');
+                const icon = document.getElementById('block-icon');
+                const reason = document.getElementById('block-reason');
+                
+                if (tipo === 'lleno') {
+                    overlay.style.border = '15px solid #f59e0b'; 
+                    icon.className = 'fa-solid fa-bus text-7xl text-yellow-500 mb-6 animate-bounce';
+                    title.innerText = "CAPACIDAD MÁXIMA";
+                    title.className = "text-3xl font-black text-yellow-500 uppercase tracking-tighter";
+                    reason.innerHTML = `Estimado estudiante, los <b>${cuposMax} cupos</b> habilitados por el panel de delegados para este turno han sido completados en su totalidad.<br><br><span style="color:#ffc107;">El sistema no emitirá más tickets por el momento.</span>`;
+                } else if (tipo === 'cerrado') {
+                    overlay.style.border = '15px solid #ef4444'; 
+                    icon.className = 'fa-solid fa-shield-halved text-7xl text-red-600 mb-6 animate-bounce';
+                    title.innerText = "TURNO CERRADO";
+                    title.className = "text-3xl font-black text-white uppercase tracking-tighter";
+                    reason.innerText = "El delegado a cargo ha desactivado la emisión de tickets para este turno.";
+                } else {
+                    overlay.style.border = '15px solid #ef4444'; 
+                    icon.className = 'fa-solid fa-clock text-7xl text-red-600 mb-6 animate-pulse';
+                    title.innerText = "SESIÓN EXPIRADA";
+                    title.className = "text-3xl font-black text-white uppercase tracking-tighter";
+                    reason.innerText = "Por motivos de seguridad, el tiempo de visualización límite (1 Minuto) ha concluido. Por favor, vuelva a ingresar desde el portal principal si lo requiere.";
+                }
+
+                document.getElementById('scanning-overlay').style.display = 'none';
+                overlay.style.display = 'flex';
+            },
+
+            // Función Reactiva: Acciona INMEDIATAMENTE cuando el delegado toca su botón
+            reaccionarAlDelegado: function() {
+                if (!turnoDataLoaded) return; // Espera a que Firebase cargue la primera vez
+                
+                // Si el estudiante ya tiene su TICKET a la vista, NO LO BLOQUEAMOS por turno cerrado.
+                if (!document.getElementById('step-3').classList.contains('hidden-section')) return;
+
+                const overlay = document.getElementById('blocking-overlay');
+                const title = document.getElementById('block-title');
+
+                if (window.estadoTurno.activo === false) {
+                    // El delegado cerró el panel -> Se bloquea la pantalla instantáneamente
+                    this.showBlockScreen('cerrado');
+                } else {
+                    // EL DELEGADO ABRIÓ EL PANEL -> Si estaba bloqueado por "cerrado", SE DESBLOQUEA SOLO.
+                    if (overlay.style.display === 'flex' && title.innerText === "TURNO CERRADO") {
+                        overlay.style.display = 'none';
+                    }
+                }
+            },
+
+            // Evalúa ÚNICAMENTE la sesión de 1 minuto
+            checkSecurityTime: function() {
                 const isValid = sessionStorage.getItem('valid_session');
                 const authTime = sessionStorage.getItem('auth_timestamp');
                 const currentTime = Date.now();
-                const overlay = document.getElementById('blocking-overlay');
 
-                // LÓGICA DE 1 MINUTO
+                // Si pasaron 60,000 ms (1 Minuto), se rompe la sesión
                 if (isValid !== 'true' || !authTime || (currentTime - authTime > 60000)) {
-                    sessionStorage.clear();
-                    overlay.style.display = 'flex';
-                    return;
-                }
-
-                // SI EL USUARIO YA TIENE EL TICKET EN PANTALLA, NO VOLVEMOS A CONSULTAR
-                if (!document.getElementById('step-3').classList.contains('hidden-section')) {
-                    return; 
-                }
-
-                try {
-                    // CAMBIO CLAVE: .once('value') en lugar de .on() para no dejar la conexión colgada
-                    const snap = await db.ref('sistema/config/tarde_activo').once('value');
-                    if(snap.val() === false) {
-                        overlay.style.display = 'flex';
-                        document.getElementById('block-reason').innerText = "El delegado ha cerrado el sistema de sincronización tarde.";
-                    }
-                } catch(e) {
-                    console.log("Error de red temporal o límite excedido momentáneamente.");
+                    sessionStorage.removeItem('valid_session'); 
+                    this.showBlockScreen('caducado');
                 }
             },
 
@@ -244,73 +320,119 @@
             },
 
             submitDni: async function() {
-                if(typedDni.length !== 8) return Swal.fire('Error', 'Ingrese 8 dígitos', 'warning');
-                document.getElementById('scanning-overlay').style.display = 'flex';
+                if(typedDni.length !== 8) return Swal.fire('Error', 'Ingrese su DNI completo de 8 dígitos', 'warning');
+                if(!turnoDataLoaded) return Swal.fire('Conectando...', 'Espere un segundo mientras nos sincronizamos con el panel.', 'info');
+                
+                const overlay = document.getElementById('scanning-overlay');
+                const msg = document.getElementById('loader-msg');
+                overlay.style.display = 'flex';
                 
                 try {
-                    // Nos aseguramos de estar conectados antes de la transacción
-                    db.goOnline();
+                    const fechaID = this.getRealTime().toISOString().split('T')[0];
 
+                    msg.innerText = "VERIFICANDO PADRÓN OFICIAL...";
                     const aluSnap = await db.ref('alumnos/' + typedDni).once('value');
                     if(!aluSnap.exists()) {
-                        document.getElementById('scanning-overlay').style.display = 'none';
-                        return Swal.fire('No Encontrado', 'DNI no está en el padrón', 'error');
+                        overlay.style.display = 'none';
+                        return Swal.fire('No Encontrado', 'DNI no está registrado en el padrón actual.', 'error');
                     }
-
                     const alu = aluSnap.val();
-                    const fechaRaw = new Date();
-                    const fechaID = fechaRaw.toISOString().split('T')[0];
-                    const fechaTicket = fechaRaw.toLocaleDateString('es-PE', { day:'2-digit', month:'2-digit', year:'numeric' });
-                    
-                    const refReg = db.ref(`sistema/viajes/${fechaID}/tarde/registros/${typedDni}`);
-                    const snapReg = await refReg.once('value');
 
-                    if(snapReg.exists()){
-                        this.renderFinal(alu, typedDni, snapReg.val(), fechaTicket);
-                    } else {
-                        db.ref(`sistema/viajes/${fechaID}/tarde/contador`).transaction(c => (c || 0) + 1, (err, comm, snapCont) => {
-                            if(comm){
-                                const data = { 
-                                    nombre: alu.Estudiante, 
-                                    orden: snapCont.val(),
-                                    hora: new Date().toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit' })
-                                };
-                                refReg.set(data);
-                                this.renderFinal(alu, typedDni, data, fechaTicket);
-                            }
-                        });
+                    msg.innerText = "REVISANDO REGISTROS DE ABORDAJE...";
+                    const asisSnap = await db.ref(`sistema/asistencias/${fechaID}/${typedDni}`).once('value');
+                    if (asisSnap.exists()) {
+                        overlay.style.display = 'none';
+                        document.getElementById('blocking-overlay').style.display = 'flex';
+                        document.getElementById('block-reason').innerText = "Tu DNI ya fue escaneado por el delegado y ya registraste tu abordaje el día de hoy. No puedes sacar otro ticket.";
+                        return;
                     }
+
+                    msg.innerText = "BUSCANDO TICKET PREVIO...";
+                    const refViajeTarde = db.ref(`sistema/viajes/${fechaID}/tarde`);
+                    const snapReg = await refViajeTarde.child(`registros/${typedDni}`).once('value');
+                    
+                    // REPARACIÓN: Si ya tiene ticket, ENTRA DIRECTO (así esté cerrado o lleno)
+                    if(snapReg.exists()){
+                        msg.innerText = "RECUPERANDO TICKET...";
+                        this.renderFinal(alu, typedDni, snapReg.val());
+                        return;
+                    }
+
+                    // AHORA SÍ EVALUAMOS ESTADO PARA LOS NUEVOS
+                    const cuposMaximos = window.estadoTurno.cupos;
+
+                    if (window.estadoTurno.activo === false) {
+                        overlay.style.display = 'none';
+                        this.showBlockScreen('cerrado');
+                        return;
+                    }
+
+                    msg.innerText = "ASIGNANDO ASIENTO EN SERVIDOR...";
+                    
+                    // TRANSACCIÓN ATÓMICA: Soporte para 70+ alumnos peleando por un cupo al mismo milisegundo
+                    refViajeTarde.child('contador').transaction(
+                        (currentCount) => {
+                            if ((currentCount || 0) >= cuposMaximos) return; // Cancela si se llenó
+                            return (currentCount || 0) + 1; // Reserva el número
+                        }, 
+                        (error, committed, snapshot) => {
+                            if (error) {
+                                overlay.style.display = 'none';
+                                return Swal.fire('Error', 'Transacción denegada por seguridad de Firebase.', 'error');
+                            }
+                            if (!committed) {
+                                overlay.style.display = 'none';
+                                this.showBlockScreen('lleno', cuposMaximos);
+                                return;
+                            } 
+                            
+                            const newSeatNumber = snapshot.val();
+                            const data = { 
+                                nombre: alu.Estudiante || "Estudiante", 
+                                orden: newSeatNumber,
+                                hora: this.getRealTime().toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit' })
+                            };
+                            
+                            refViajeTarde.child(`registros/${typedDni}`).set(data)
+                            .then(() => {
+                                this.renderFinal(alu, typedDni, data);
+                            })
+                            .catch(errorEscritura => {
+                                overlay.style.display = 'none';
+                                Swal.fire('Error', 'Se reservó tu cupo pero el internet falló al guardar tus datos.', 'error');
+                            });
+                        }
+                    );
+
                 } catch (e) {
-                    document.getElementById('scanning-overlay').style.display = 'none';
-                    Swal.fire('Error de Red', 'La cola está llena o tienes problemas de conexión. Reintenta.', 'error');
+                    overlay.style.display = 'none';
+                    Swal.fire('Error de Red', 'Problemas de conexión con el servidor.', 'error');
                 }
             },
 
-            renderFinal: function(alu, dni, ticket, fecha) {
-                document.getElementById('t-nom').innerText = alu.Estudiante;
-                document.getElementById('t-dni').innerText = dni;
-                document.getElementById('t-hora').innerText = ticket.hora;
-                document.getElementById('t-fecha').innerText = fecha;
+            renderFinal: function(alu, dni, ticket) {
+                // RESETEA EL CRONÓMETRO: Inicia exactamente 1 minuto desde que ve el ticket
+                sessionStorage.setItem('auth_timestamp', Date.now());
+
+                const fechaFormat = this.getRealTime().toLocaleDateString('es-PE', { weekday:'long', year:'numeric', month:'long', day:'numeric' }).toUpperCase();
                 
-                const box = document.getElementById('seat-box');
-                const icon = document.getElementById('seat-icon');
-                const text = document.getElementById('seat-text');
+                document.getElementById('t-fecha').innerText = fechaFormat;
+                document.getElementById('t-nom').innerText = alu.Estudiante || "Estudiante UNAC";
+                document.getElementById('t-dni').innerText = dni;
+                document.getElementById('t-cod').innerText = alu.Codigo || alu.codigo || "S/C";
+                document.getElementById('t-hora').innerText = ticket.hora;
+                
+                document.getElementById('seat-area').innerText = "ASIENTO";
 
-                if(ticket.orden <= 40) {
-                    box.className = "seat-status seat-ok";
-                    icon.className = "fa-solid fa-chair";
-                    text.innerText = "Asiento Asegurado";
-                } else {
-                    box.className = "seat-status seat-stand";
-                    icon.className = "fa-solid fa-person-walking";
-                    text.innerText = "Viaje de Pie";
-                }
-
+                // GENERACIÓN DE QR PARA DELEGADO
                 document.getElementById('qrcode-vip').innerHTML = "";
+                const qrText = `UNAC-V-${dni}-T-${ticket.orden}`;
                 new QRCode(document.getElementById("qrcode-vip"), { 
-                    text: `UNAC-T:${dni}:V:${fecha}`, 
-                    width: 150, 
-                    height: 150,
+                    text: qrText, 
+                    width: 170, 
+                    height: 170,
+                    colorDark : "#050505",
+                    colorLight : "#ffffff",
                     correctLevel : QRCode.CorrectLevel.H
                 });
 
@@ -319,11 +441,7 @@
                     document.getElementById('step-1').classList.add('hidden-section');
                     document.getElementById('step-3').classList.remove('hidden-section');
                     window.scrollTo({ top: 0, behavior: 'smooth' });
-                    
-                    // TRUCO MAESTRO: Desconectar al usuario de Firebase inmediatamente después de procesar su pase.
-                    // Su ticket y su QR ya están renderizados en pantalla localmente. Ya no necesita ocupar espacio.
-                    db.goOffline();
-                }, 800);
+                }, 1000);
             },
 
             initThree: function() {
@@ -333,7 +451,7 @@
                 const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
                 renderer.setSize(container.clientWidth, container.clientHeight);
                 container.appendChild(renderer.domElement);
-                const sphere = new THREE.Mesh(new THREE.IcosahedronGeometry(20, 1), new THREE.MeshBasicMaterial({ color: 0xffc107, wireframe: true, transparent: true, opacity: 0.1 }));
+                const sphere = new THREE.Mesh(new THREE.IcosahedronGeometry(20, 1), new THREE.MeshBasicMaterial({ color: 0xffc107, wireframe: true, transparent: true, opacity: 0.15 }));
                 scene.add(sphere); camera.position.z = 50;
                 function animate() { requestAnimationFrame(animate); sphere.rotation.y += 0.005; renderer.render(scene, camera); }
                 animate();
