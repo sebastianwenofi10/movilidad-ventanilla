@@ -3,11 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>UNAC | Sistema de Votación Finalizada</title>
+    <title>UNAC | Terminal Oficial de Movilidad</title>
     
     <!-- LIBRERÍAS EXTERNAS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script> 
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;800;900&family=Share+Tech+Mono&family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
@@ -28,7 +29,7 @@
         .hud-line { position: absolute; width: 100%; height: 4px; background: var(--accent); top: 0; animation: scanLine 2.5s linear infinite; box-shadow: 0 0 30px var(--accent); }
         @keyframes scanLine { 0% { top: 0; } 100% { top: 100%; } }
 
-        /* DISEÑO ORIGINAL */
+        /* DISEÑO ORIGINAL MEJORADO */
         .main-wrapper { position: relative; z-index: 10; background: radial-gradient(circle at 50% 50%, rgba(20, 20, 20, 0.4) 0%, rgba(5, 5, 5, 1) 100%), url('https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?auto=format&fit=crop&q=80&w=1920'); background-size: cover; background-position: center; background-attachment: fixed; min-height: 100vh; width: 100%; display: flex; flex-direction: column; }
         header { width: 100%; max-width: 1200px; padding: 30px 20px; z-index: 1000; margin: 0 auto; }
         .nav-link { font-size: 11px; font-weight: 700; letter-spacing: 2px; color: rgba(255, 255, 255, 0.6); text-transform: uppercase; position: relative; transition: 0.3s; }
@@ -39,33 +40,31 @@
         #mobile-menu { position: fixed; inset: 0; background: rgba(5,5,5,0.98); z-index: 2000; display: none; flex-direction: column; align-items: center; justify-content: center; gap: 35px; }
         #mobile-menu.active { display: flex; }
 
-        .shift-title { position: relative; z-index: 2; font-family: 'Montserrat'; font-weight: 900; font-style: italic; text-transform: uppercase; }
-        .input-tech { width: 100%; background: rgba(0,0,0,0.5); border: 1px solid rgba(255,193,7,0.3); padding: 22px; border-radius: 20px; text-align: center; font-size: 26px; font-weight: 900; color: #fff; outline: none; transition: 0.3s; }
+        /* TARJETAS DETALLADAS Y BLOQUEOS */
+        .card-panorama { position: relative; overflow: hidden; border-radius: 35px; border: 1px solid rgba(255,255,255,0.1); height: 280px; display: flex; flex-direction: column; align-items: center; justify-content: center; background-size: cover; background-position: center; transition: 0.4s; cursor: pointer; text-align: center; padding: 20px; }
+        .card-panorama::before { content: ''; position: absolute; inset: 0; background: rgba(0,0,0,0.7); z-index: 1; pointer-events: none; transition: 0.4s; }
+        
+        /* ESTADO BLOQUEADO DE LAS TARJETAS */
+        .card-panorama.locked { filter: grayscale(1) opacity(0.6); pointer-events: none; cursor: not-allowed; border-color: rgba(239, 68, 68, 0.3); }
+        .card-panorama.locked::before { background: rgba(0,0,0,0.85); }
+        .card-panorama.locked:hover { transform: none; }
+
+        .shift-title { position: relative; z-index: 2; font-family: 'Montserrat'; font-weight: 900; font-style: italic; font-size: 35px; text-transform: uppercase; }
+        .time-badge { position: relative; z-index: 2; background: white; color: black; padding: 5px 20px; border-radius: 10px; font-weight: 900; font-size: 12px; margin: 10px 0; box-shadow: 0 5px 15px rgba(255,255,255,0.2); }
+        .delegate-msg { position: relative; z-index: 2; font-size: 9px; color: #aaa; text-transform: uppercase; font-weight: 700; max-width: 200px; margin-top: 10px; line-height: 1.4; }
+
+        .ticket-tech { background: #ffffff; color: #000; border-radius: 50px; width: 100%; max-width: 440px; margin: 0 auto; overflow: hidden; box-shadow: 0 60px 150px rgba(0,0,0,0.9); border: 1px solid rgba(255,255,255,0.1); }
+        .tech-header { background: #000; color: #fff; padding: 30px; text-align: center; border-bottom: 6px solid var(--accent); }
+        .asiento-display { font-family: 'Montserrat'; font-size: 110px; font-weight: 900; color: #000; line-height: 1; margin: 20px 0; }
+        .data-grid { background: #f1f1f1; padding: 25px; border-radius: 30px; margin: 0 25px 25px; text-align: left; font-family: 'Share Tech Mono', monospace; }
+        .turno-box { background: #000; color: var(--accent); padding: 15px; border-radius: 20px; font-weight: 900; text-transform: uppercase; font-size: 14px; margin-top: 15px; display: flex; justify-content: space-between; align-items: center; }
+
+        .input-tech { width: 100%; background: rgba(0,0,0,0.5); border: 1px solid rgba(255,193,7,0.3); padding: 22px; border-radius: 20px; text-align: center; font-size: 26px; font-weight: 900; color: #fff; outline: none; transition: 0.3s; letter-spacing: 2px; }
+        .input-tech:focus { border-color: var(--accent); box-shadow: 0 0 20px rgba(255, 193, 7, 0.2); }
+        
         #globe-box, #globe-box-2 { width: 100%; height: 320px; pointer-events: none; }
         .hidden-section { display: none !important; }
-        
-        /* ESTILOS PARA VOTACIÓN 3D */
-        @keyframes spin-3d {
-            0% { transform: perspective(1000px) rotateY(0deg); }
-            100% { transform: perspective(1000px) rotateY(360deg); }
-        }
-        .img-spin-3d {
-            animation: spin-3d 5s linear infinite;
-            width: 140px;
-            height: 140px;
-            border-radius: 20px;
-            object-fit: cover;
-            margin: 20px auto;
-            box-shadow: 0 15px 35px rgba(255, 193, 7, 0.2);
-            border: 2px solid rgba(255,255,255,0.1);
-        }
-
-        /* SCROLLBAR PERSONALIZADO PARA DETALLES */
-        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: rgba(255,255,255,0.05); border-radius: 10px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 10px; }
-
-        @media (max-width: 768px) { .nav-desktop { display: none; } .input-tech { font-size: 1.2rem; } .shift-title { font-size: 28px; } }
+        @media (max-width: 768px) { .nav-desktop { display: none; } .input-tech { font-size: 1.2rem; } .shift-title { font-size: 28px; } .asiento-display { font-size: 80px; } }
     </style>
 </head>
 <body>
@@ -82,10 +81,10 @@
                 </div>
             </div>
         </div>
-        <p class="text-[9px] text-gray-500 font-bold uppercase mt-6 tracking-[6px]">SISTEMA DE VERIFICACIÓN BIOMÉTRICA UNAC</p>
+        <p class="text-[9px] text-gray-500 font-bold uppercase mt-6 tracking-[6px]">SISTEMA SEGURIDAD BIOMÉTRICA UNAC</p>
     </div>
 
-    <!-- MENÚ MÓVIL -->
+    <!-- MENÚ MÓVIL COMPLETO -->
     <div id="mobile-menu">
         <button onclick="toggleMenu()" class="absolute top-10 right-10 text-yellow-500 text-4xl"><i class="fa-solid fa-xmark"></i></button>
         <a href="index.html" class="text-xl font-black uppercase text-white">Inicio</a>
@@ -105,6 +104,7 @@
                     <span class="text-[9px] text-yellow-500 font-bold">Movilidad</span>
                 </div>
             </div>
+            <!-- NAVEGACIÓN COMPLETA -->
             <nav class="hidden md:flex gap-8 nav-desktop">
                 <a href="index.html" class="nav-link">Inicio</a>
                 <a href="rutas.html" class="nav-link">Rutas</a>
@@ -118,137 +118,106 @@
 
         <main class="max-w-6xl mx-auto px-6 py-8 w-full flex-grow z-20">
             
-            <!-- PASO 1 (BÚSQUEDA) -->
+            <!-- PASO 1 : INGRESO -->
             <div id="step-1" class="text-center animate-fade-up">
-                <h1 class="text-5xl md:text-6xl font-black uppercase italic tracking-tighter mb-4 leading-none">Acceso <span class="text-yellow-500">Oficial</span></h1>
+                <h1 class="text-5xl md:text-6xl font-black uppercase italic tracking-tighter mb-4 leading-none">Tickets <span class="text-yellow-500">Oficiales</span></h1>
                 <p class="text-gray-400 text-[11px] uppercase tracking-[3px] max-w-xl mx-auto mb-10 font-bold leading-relaxed">
-                    SISTEMA DE VERIFICACIÓN ESTUDIANTIL. <span class="text-yellow-500">CONEXIÓN INSTANTÁNEA FIREBASE</span>.
+                    SISTEMA DE PASES DIGITALES - RUTA VENTANILLA. <span class="text-yellow-500">SEGURIDAD Y SINCRONIZACIÓN EN TIEMPO REAL</span>.
                 </p>
                 
                 <div class="max-w-xs mx-auto space-y-6">
-                    <input type="text" id="dniInput" class="input-tech" placeholder="INGRESE DNI" maxlength="8">
-                    <button onclick="Core.startScan()" class="bg-yellow-500 text-black font-black p-5 rounded-2xl w-full uppercase tracking-widest hover:bg-white transition shadow-xl">Verificar Alumno</button>
+                    <input type="text" id="dniInput" class="input-tech" placeholder="INGRESE DNI" maxlength="8" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+                    <button onclick="Core.startScan()" class="bg-yellow-500 text-black font-black p-5 rounded-2xl w-full uppercase tracking-widest hover:bg-white transition shadow-xl">Verificar Identidad</button>
+                    
+                    <div class="flex justify-center">
+                        <a href="tutorial.html" class="w-full bg-white/5 border border-white/10 p-4 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-yellow-500 hover:text-black transition flex items-center justify-center gap-2"><i class="fa-solid fa-play"></i> Ver Tutorial de Uso</a>
+                    </div>
                     <!-- GLOBO 1 -->
                     <div id="globe-box"></div>
+                    <a href="AccesoDelegados.html" target="_blank" class="flex items-center justify-center gap-3 text-[10px] font-black text-gray-600 hover:text-yellow-500 transition uppercase tracking-widest mt-6">
+                        <i class="fa-solid fa-shield-halved text-lg"></i> Acceso Restringido Delegados
+                    </a>
                 </div>
             </div>
 
-            <!-- PASO 2 (SISTEMA INTERNO - RESULTADOS) -->
+            <!-- PASO 2 : SELECCIÓN DE TURNO Y PERFIL -->
             <div id="step-2" class="hidden-section animate-fade-up">
-                
-                <!-- Perfil y Estado de Voto -->
-                <div class="bg-white/5 border border-white/10 p-8 rounded-[40px] mb-8 border-l-8 border-l-yellow-500 shadow-2xl flex flex-col md:flex-row justify-between items-center gap-8">
-                    <div class="flex items-center gap-6">
-                        <div class="w-24 h-24 bg-yellow-500 rounded-[30px] flex items-center justify-center text-black text-5xl shadow-2xl"><i class="fa-solid fa-user-check"></i></div>
-                        <div>
-                            <!-- AQUI SE MUESTRA EL NOMBRE COMPLETO SOLO AL PROPIO USUARIO LOGUEADO -->
-                            <h2 id="userName" class="text-3xl font-black uppercase italic"></h2>
-                            <p id="userFac" class="text-yellow-500 text-[11px] font-black mt-3 uppercase"></p>
-                            <p class="text-[9px] text-gray-500 font-mono mt-2">DNI: <span id="userDni" class="text-white"></span> | <span class="text-green-500 font-black">IDENTIDAD VERIFICADA</span></p>
+                <!-- PERFIL DEL ALUMNO COMPLETADO -->
+                <div class="bg-white/5 border border-white/10 p-6 rounded-[35px] mb-8 border-l-8 border-l-yellow-500 shadow-2xl flex flex-col md:flex-row justify-between items-center gap-6">
+                    <div class="flex items-center gap-6 w-full md:w-auto">
+                        <div class="w-20 h-20 md:w-24 md:h-24 bg-gradient-to-br from-yellow-400 to-yellow-600 rounded-[25px] flex items-center justify-center text-black text-4xl shadow-lg border-2 border-black">
+                            <i class="fa-solid fa-id-badge"></i>
+                        </div>
+                        <div class="text-left">
+                            <h2 id="userName" class="text-2xl md:text-3xl font-black uppercase italic tracking-tight"></h2>
+                            <p id="userFac" class="text-yellow-500 text-[10px] md:text-[11px] font-black mt-2 uppercase tracking-wider"></p>
+                            <div class="flex flex-wrap gap-3 mt-3">
+                                <span class="bg-black/50 px-3 py-1.5 rounded-lg border border-white/10 text-[9px] font-mono text-gray-300">DNI: <span id="userDni" class="text-white font-bold"></span></span>
+                                <span class="bg-black/50 px-3 py-1.5 rounded-lg border border-white/10 text-[9px] font-mono text-gray-300">CÓDIGO: <span id="userCod" class="text-white font-bold"></span></span>
+                            </div>
                         </div>
                     </div>
-                    
-                    <!-- CAJA DE ESTADO DE VOTO -->
-                    <div id="status-container" class="text-center md:text-right bg-red-600/10 p-5 rounded-3xl border border-red-600/30 min-w-[200px] transition-all duration-500">
-                        <p class="text-[9px] text-gray-400 font-black uppercase mb-1 tracking-widest">Estado de Voto</p>
-                        <div class="text-3xl font-black text-red-500" id="status-text">NO VOTÓ</div>
+                    <div class="text-center bg-black/60 p-4 rounded-2xl border border-white/5 w-full md:w-auto">
+                        <div class="flex items-center justify-center gap-2 mb-1">
+                            <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+                            <p class="text-[9px] text-gray-400 font-black uppercase tracking-widest">Conexión Segura</p>
+                        </div>
+                        <div class="text-xs font-black text-white mt-2">SISTEMA <span class="text-yellow-500">EN LÍNEA</span></div>
                     </div>
                 </div>
 
-                <!-- SECCIÓN DE RESULTADOS -->
-                <div id="voting-module" class="mb-10 w-full animate-fade-up">
-                    <h3 class="text-3xl font-black uppercase italic text-center text-white mb-6">Resultados <span class="text-yellow-500">Finales</span></h3>
-                    
-                    <!-- COMUNICADO DE ENCUESTA FINALIZADA -->
-                    <div class="bg-green-500/10 border border-green-500/30 p-6 md:p-8 rounded-3xl mb-8 text-left shadow-[0_0_20px_rgba(34,197,94,0.15)]">
-                        <h4 class="text-green-500 font-black text-lg md:text-xl mb-4 uppercase tracking-wider flex items-center gap-3">
-                            <i class="fa-solid fa-trophy text-2xl animate-pulse"></i> COMUNICADO: ENCUESTA FINALIZADA
-                        </h4>
-                        <div class="text-gray-300 text-sm md:text-base leading-relaxed space-y-3 font-medium" id="winner-announcement">
-                            <!-- Se llena dinámicamente con JS -->
-                        </div>
+                <!-- TARJETAS DE TURNOS -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                    <div id="card-m" class="card-panorama" style="background-image: url('DSC07555-768x432.jpg');" onclick="Core.requestTicket('mañana')">
+                        <span id="badge-m" class="relative z-10 text-[9px] font-black px-4 py-1 rounded-full mb-2 uppercase">Evaluando...</span>
+                        <h3 class="shift-title text-white">Mañana</h3>
+                        <div class="time-badge">SALIDA: 05:15 AM</div>
+                        <p class="delegate-msg text-yellow-500">Autoactivación (9:00 PM - 7:00 AM)</p>
                     </div>
-
-                    <!-- CRONÓMETRO CERRADO -->
-                    <div class="mb-10 flex flex-col items-center">
-                        <p class="text-[11px] text-red-500 font-black uppercase mb-4 tracking-[5px] animate-pulse">TIEMPO AGOTADO - VOTACIÓN CERRADA</p>
-                        <div class="flex gap-3 md:gap-6 text-center font-mono opacity-50">
-                            <div class="bg-black/60 border border-white/10 rounded-2xl w-20 h-20 md:w-24 md:h-24 flex flex-col items-center justify-center shadow-xl">
-                                <span class="text-3xl md:text-4xl font-black text-white">00</span>
-                                <span class="text-[9px] md:text-[11px] text-gray-500 font-bold uppercase mt-1 tracking-widest">Días</span>
-                            </div>
-                            <div class="bg-black/60 border border-white/10 rounded-2xl w-20 h-20 md:w-24 md:h-24 flex flex-col items-center justify-center shadow-xl">
-                                <span class="text-3xl md:text-4xl font-black text-white">00</span>
-                                <span class="text-[9px] md:text-[11px] text-gray-500 font-bold uppercase mt-1 tracking-widest">Horas</span>
-                            </div>
-                            <div class="bg-black/60 border border-white/10 rounded-2xl w-20 h-20 md:w-24 md:h-24 flex flex-col items-center justify-center shadow-xl">
-                                <span class="text-3xl md:text-4xl font-black text-white">00</span>
-                                <span class="text-[9px] md:text-[11px] text-gray-500 font-bold uppercase mt-1 tracking-widest">Min</span>
-                            </div>
-                            <div class="bg-black/60 border border-white/10 rounded-2xl w-20 h-20 md:w-24 md:h-24 flex flex-col items-center justify-center shadow-xl relative overflow-hidden">
-                                <span class="text-3xl md:text-4xl font-black text-red-500 relative z-10">00</span>
-                                <span class="text-[9px] md:text-[11px] text-gray-500 font-bold uppercase mt-1 tracking-widest relative z-10">Seg</span>
-                            </div>
-                        </div>
+                    <div id="card-t" class="card-panorama" style="background-image: url('DSC07588-768x432.jpg');" onclick="Core.goToTarde()">
+                        <span id="badge-t" class="relative z-10 text-[9px] font-black px-4 py-1 rounded-full mb-2 uppercase">Evaluando...</span>
+                        <h3 class="shift-title text-white">Tarde</h3>
+                        <div id="time-badge-t" class="time-badge">--:--</div>
+                        <p class="delegate-msg text-yellow-500">Sincronizado con Panel de Delegado</p>
                     </div>
-                    
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <!-- Opción Página -->
-                        <div id="card-pag" class="bg-white/5 border border-white/10 p-6 rounded-[35px] text-center flex flex-col items-center justify-between transition-all duration-500">
-                            <h3 class="shift-title text-white" style="font-size: 26px;">PÁGINA</h3>
-                            <img src="we12345.jpeg" class="img-spin-3d" alt="Página">
-                            <button id="btn-pag" disabled class="w-full bg-gray-700 text-gray-300 font-black p-4 rounded-xl uppercase tracking-widest cursor-not-allowed mt-4 shadow-lg">Calculando...</button>
-                        </div>
-
-                        <!-- Opción Formulario -->
-                        <div id="card-form" class="bg-white/5 border border-white/10 p-6 rounded-[35px] text-center flex flex-col items-center justify-between transition-all duration-500">
-                            <h3 class="shift-title text-white" style="font-size: 26px;">FORMULARIO</h3>
-                            <img src="we1234.jpeg" class="img-spin-3d" alt="Formulario">
-                            <button id="btn-form" disabled class="w-full bg-gray-700 text-gray-300 font-black p-4 rounded-xl uppercase tracking-widest cursor-not-allowed mt-4 shadow-lg">Calculando...</button>
-                        </div>
-                    </div>
-
-                    <!-- Botón para ver detalles -->
-                    <div class="mt-8 flex justify-center">
-                        <button onclick="Core.toggleDetails()" class="bg-blue-600/20 border border-blue-500/50 text-blue-400 font-black px-6 py-4 rounded-2xl uppercase tracking-widest hover:bg-blue-600 hover:text-white transition-all shadow-[0_0_15px_rgba(59,130,246,0.3)] w-full md:w-auto flex items-center justify-center gap-3">
-                            <i class="fa-solid fa-users-viewfinder text-xl"></i> Ver Padrón de Votos Detallado
-                        </button>
-                    </div>
-
-                    <!-- Sección oculta de detalles -->
-                    <div id="details-section" class="hidden mt-8 w-full animate-fade-up">
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <!-- Columna Detalle PÁGINA -->
-                            <div class="bg-black/50 border border-white/10 rounded-[25px] p-5 shadow-inner">
-                                <div class="text-center mb-4 border-b border-white/10 pb-3">
-                                    <h4 class="text-yellow-500 font-black uppercase tracking-widest">Votos: PÁGINA</h4>
-                                    <p class="text-xs text-gray-400 mt-1 font-bold">Total contabilizados: <span id="count-pag-detail" class="text-white">0</span></p>
-                                </div>
-                                <div id="list-pag" class="space-y-3 max-h-[350px] overflow-y-auto pr-2 custom-scrollbar">
-                                    <!-- Se llena con JS -->
-                                </div>
-                            </div>
-                            <!-- Columna Detalle FORMULARIO -->
-                            <div class="bg-black/50 border border-white/10 rounded-[25px] p-5 shadow-inner">
-                                <div class="text-center mb-4 border-b border-white/10 pb-3">
-                                    <h4 class="text-yellow-500 font-black uppercase tracking-widest">Votos: FORMULARIO</h4>
-                                    <p class="text-xs text-gray-400 mt-1 font-bold">Total contabilizados: <span id="count-form-detail" class="text-white">0</span></p>
-                                </div>
-                                <div id="list-form" class="space-y-3 max-h-[350px] overflow-y-auto pr-2 custom-scrollbar">
-                                    <!-- Se llena con JS -->
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Mensaje de confirmación de voto -->
-                    <div id="vote-message" class="mt-8 text-center text-[12px] font-black tracking-[2px] uppercase hidden p-5 rounded-2xl transition-all duration-500"></div>
                 </div>
-                
+                <div id="card-n" class="card-panorama w-full" style="background-image: url('DSC07629-768x432.jpg');" onclick="Core.requestTicket('noche')">
+                    <span id="badge-n" class="relative z-10 text-[9px] font-black px-4 py-1 rounded-full mb-2 uppercase">Evaluando...</span>
+                    <h3 class="shift-title text-white text-5xl">Noche</h3>
+                    <div id="time-badge-n" class="time-badge">--:--</div>
+                    <p class="delegate-msg text-yellow-500">Sincronizado con Panel de Delegado</p>
+                </div>
                 <!-- GLOBO 2 -->
                 <div id="globe-box-2"></div>
             </div>
 
+            <!-- PASO 3 : TICKET GENERADO -->
+            <div id="step-3" class="hidden-section animate-fade-up text-center">
+                <div class="ticket-tech">
+                    <div class="tech-header"><h2>MOVILIDAD UNAC</h2><p class="text-[10px] text-yellow-500 tracking-widest mt-1">RUTA VENTANILLA</p></div>
+                    <div class="p-8">
+                        <p id="t-fecha" class="text-sm font-black text-gray-500 uppercase mb-6"></p>
+                        <div class="bg-gray-100 border-4 border-dashed border-gray-300 rounded-[50px] py-10 mb-8 relative">
+                            <p class="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-1">NÚMERO DE ASIENTO</p>
+                            <div id="seat-area" class="asiento-display">--</div>
+                        </div>
+                        <div id="qrcode-vip" class="flex justify-center mb-8 border-4 border-black p-4 rounded-3xl w-max mx-auto"></div>
+                        <div class="data-grid space-y-3 text-left">
+                            <div class="flex flex-col border-b border-gray-300 pb-2">
+                                <span class="text-[9px] text-gray-500">PASAJERO:</span> 
+                                <span id="t-nom" class="font-bold text-[12px] uppercase"></span>
+                            </div>
+                            <div class="flex justify-between border-b border-gray-300 pb-2">
+                                <div class="flex flex-col"><span class="text-[9px] text-gray-500">DNI:</span> <span id="t-dni" class="font-bold text-[13px]"></span></div>
+                                <div class="flex flex-col text-right"><span class="text-[9px] text-gray-500">CÓDIGO:</span> <span id="t-cod" class="font-bold text-[13px]"></span></div>
+                            </div>
+                            <div class="turno-box shadow-lg"><span>TURNO ASIGNADO</span> <span id="t-turno-val" class="text-white"></span></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <button onclick="location.reload()" class="mt-8 bg-white/10 text-white font-black px-8 py-4 rounded-xl uppercase tracking-widest text-[10px] hover:bg-red-600 transition">Cerrar Sesión Segura</button>
+            </div>
         </main>
 
         <footer class="w-full py-12 flex flex-col items-center border-t border-white/5 bg-black/40 mt-10 relative z-20">
@@ -263,43 +232,118 @@
         const firebaseConfig = {
             apiKey: "AIzaSyBxaeAc2nq7iEeiLejvja3lKGwR4E09QS4",
             authDomain: "ventanilla-unac.firebaseapp.com",
-            databaseURL: "https://ventanilla-unac-default-rtdb.firebaseio.com",
+            databaseURL: "https://unac-ventanilla-default-rtdb.firebaseio.com",
             projectId: "ventanilla-unac",
             storageBucket: "ventanilla-unac.appspot.com",
             messagingSenderId: "245380540222",
             appId: "1:245380540222:web:d4ea08b7818bf89d682e6f"
         };
-        firebase.initializeApp(firebaseConfig);
+        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
+
+        let serverTimeOffset = 0;
 
         const Core = {
             alumno: null,
-            userVote: null,
-            voteCounts: { formulario: 0, pagina: 0 },
-            detailsFetched: false,
+            config: {},
+            currentMananaActive: false,
+            currentTardeActive: false,
+            currentNocheActive: false,
 
             init: function() { 
                 this.initThree('globe-box'); 
+                
+                // Obtener diferencia de tiempo real del servidor de Google
+                db.ref('.info/serverTimeOffset').on('value', snap => {
+                    serverTimeOffset = snap.val() || 0;
+                    this.checkSchedules();
+                });
+
+                this.listenFirebase(); 
+                
+                // Evaluar la hora cada 30 segundos
+                setInterval(() => this.checkSchedules(), 30000);
+            },
+
+            getRealTime: function() {
+                return new Date(Date.now() + serverTimeOffset);
+            },
+
+            listenFirebase: function() {
+                // Escuchar configuración estricta del Panel del Delegado
+                db.ref('sistema/config').on('value', snap => {
+                    this.config = snap.val() || {};
+                    this.checkSchedules();
+                });
+            },
+
+            checkSchedules: function() {
+                if (!this.config) return;
+
+                const now = this.getRealTime();
+                const currentMins = now.getHours() * 60 + now.getMinutes();
+
+                // 1. MAÑANA: Fijo de 9:00 PM (1260 mins) a 6:59 AM (419 mins)
+                this.currentMananaActive = (currentMins >= 1260 || currentMins < 420);
+                
+                // 2. TARDE: ESTRICTAMENTE SINCRONIZADO CON EL PANEL DE DELEGADOS
+                // Se eliminó la restricción que bloqueaba la tarjeta cuando el bus se llenaba.
+                // La tarjeta SIEMPRE estará abierta mientras el delegado la deje en "ACTIVO".
+                this.currentTardeActive = (this.config.tarde_activo === true);
+
+                // 3. NOCHE: ESTRICTAMENTE SINCRONIZADO CON EL PANEL DE DELEGADOS
+                this.currentNocheActive = (this.config.noche_activo === true);
+
+                // TEXTOS DINÁMICOS DE LOS BADGES (MANUAL VS PROGRAMADO)
+                if(document.getElementById('time-badge-t')) {
+                    document.getElementById('time-badge-t').innerText = this.config.prog_tarde ? 
+                        "PROGRAMADO: " + (this.config.hora_tarde || '--:--') : "ACTIVACIÓN MANUAL";
+                }
+                if(document.getElementById('time-badge-n')) {
+                    document.getElementById('time-badge-n').innerText = this.config.prog_noche ? 
+                        "PROGRAMADO: " + (this.config.hora_noche || '--:--') : "ACTIVACIÓN MANUAL";
+                }
+
+                // Actualizar estado visual de las Tarjetas
+                this.upUI('badge-m', 'card-m', this.currentMananaActive);
+                this.upUI('badge-t', 'card-t', this.currentTardeActive);
+                this.upUI('badge-n', 'card-n', this.currentNocheActive);
+            },
+
+            upUI: function(bid, cid, act) {
+                const b = document.getElementById(bid), c = document.getElementById(cid);
+                if(!b || !c) return;
+                
+                if (act) {
+                    b.innerText = "🟢 DISPONIBLE";
+                    b.className = "relative z-10 text-[9px] font-black px-4 py-1 rounded-full mb-2 bg-green-500/20 text-green-400 border border-green-500 animate-pulse";
+                    c.classList.remove('locked');
+                    c.style.pointerEvents = "auto";
+                } else {
+                    b.innerText = "🔴 CERRADO";
+                    b.className = "relative z-10 text-[9px] font-black px-4 py-1 rounded-full mb-2 bg-red-900/50 text-red-400 border border-red-500";
+                    c.classList.add('locked');
+                    c.style.pointerEvents = "none";
+                }
             },
 
             startScan: async function() {
                 const dni = document.getElementById('dniInput').value.trim();
-                if(dni.length < 8) return Swal.fire('Error', 'DNI incompleto', 'warning');
+                if(dni.length < 8) return Swal.fire('Error', 'Debe ingresar un DNI válido de 8 dígitos', 'warning');
                 
                 const overlay = document.getElementById('scanning-overlay'), msg = document.getElementById('loader-msg'), bar = document.getElementById('progress-bar');
                 overlay.style.display = 'flex';
                 
                 const steps = [
-                    {p:"20%",t:"ESTABLECIENDO CONEXIÓN SEGURA..."},
-                    {p:"40%",t:"BUSCANDO DNI EN PADRÓN..."},
-                    {p:"60%",t:"VALIDANDO MATRÍCULA Y FACULTAD..."},
-                    {p:"85%",t:"SINCRONIZANDO CON NUBE FIREBASE..."},
-                    {p:"100%",t:"AUTORIZACIÓN COMPLETADA"}
+                    {p:"25%",t:"VERIFICANDO HORA DE SERVIDOR..."},
+                    {p:"50%",t:"BUSCANDO IDENTIDAD EN PADRÓN..."},
+                    {p:"85%",t:"CARGANDO PERFIL ESTUDIANTIL..."},
+                    {p:"100%",t:"ACCESO AUTORIZADO"}
                 ];
                 for (const s of steps) { 
                     msg.innerText = s.t; 
                     bar.style.width = s.p; 
-                    await new Promise(r => setTimeout(r, 800)); 
+                    await new Promise(r => setTimeout(r, 1500)); 
                 }
 
                 db.ref('alumnos/' + dni).once('value').then(snap => {
@@ -307,275 +351,111 @@
                     if(snap.exists()){
                         this.alumno = snap.val(); 
                         this.alumno.dni = dni;
-
+                        
                         document.getElementById('step-1').classList.add('hidden-section');
                         document.getElementById('step-2').classList.remove('hidden-section');
-                        document.getElementById('userName').innerText = this.alumno.Estudiante;
-                        document.getElementById('userFac').innerText = this.alumno.Facultad;
-                        document.getElementById('userDni').innerText = dni;
                         
-                        this.initVoting();
+                        document.getElementById('userName').innerText = this.alumno.Estudiante || "Estudiante UNAC";
+                        document.getElementById('userFac').innerText = this.alumno.Facultad || "Facultad No Registrada";
+                        document.getElementById('userDni').innerText = dni;
+                        document.getElementById('userCod').innerText = this.alumno.Codigo || this.alumno.codigo || "S/C"; 
+                        
                         this.initThree('globe-box-2');
                     } else {
                         this.handleNotRegistered(dni);
                     }
                 }).catch(err => {
                     overlay.style.display = 'none';
-                    Swal.fire('Error de Conexión', 'Problema al conectar con la base de datos.', 'error');
+                    Swal.fire('Error de Conexión', 'No se pudo contactar con la base de datos. Revisa tu internet.', 'error');
                 });
-            },
-
-            initVoting: function() {
-                const dni = this.alumno.dni;
-                db.ref('sistema/votacion/resultados').on('value', snap => {
-                    this.voteCounts = snap.val() || { formulario: 0, pagina: 0 };
-                    
-                    db.ref(`sistema/votacion/votos_usuarios/${dni}`).on('value', userSnap => {
-                        if (userSnap.exists()) {
-                            this.userVote = userSnap.val();
-                            this.renderVoteState(true);
-                        } else {
-                            this.userVote = null;
-                            this.renderVoteState(false);
-                        }
-                    });
-                });
-            },
-
-            renderVoteState: function(hasVoted) {
-                const btnForm = document.getElementById('btn-form');
-                const btnPag = document.getElementById('btn-pag');
-                const cardForm = document.getElementById('card-form');
-                const cardPag = document.getElementById('card-pag');
-                const msg = document.getElementById('vote-message');
-                const statusBox = document.getElementById('status-container');
-                const statusText = document.getElementById('status-text');
-                const winnerText = document.getElementById('winner-announcement');
-
-                // SOLUCIÓN EXACTA: Fijar matemáticamente los números que la interfaz va a mostrar siempre.
-                // 194 para Formulario y 210 para Página (corrige la diferencia de 195).
-                const vForm = 194; 
-                const vPag = 210; 
-                
-                const total = vForm + vPag;
-                const percForm = total === 0 ? 0 : Math.round((vForm / total) * 100);
-                const percPag = total === 0 ? 0 : Math.round((vPag / total) * 100);
-
-                let winner = "EMPATE";
-                if (vForm > vPag) winner = "FORMULARIO";
-                else if (vPag > vForm) winner = "PÁGINA";
-
-                winnerText.innerHTML = `
-                    <p>Estimados compañeros:</p>
-                    <p>La encuesta solicitada sobre la gestión de movilidad ha concluido oficialmente en la fecha límite acordada. Queremos agradecer a todos los estudiantes por su activa y transparente participación.</p>
-                    <p>Los resultados finales verificados por el sistema arrojan que la opción ganadora elegida por la mayoría es: <strong class="text-white text-lg font-black bg-yellow-500/20 px-2 py-1 rounded border border-yellow-500/50">${winner}</strong>.</p>
-                    <p>Debajo pueden verificar el porcentaje total de los votos y en la sección inferior acceder al padrón detallado para validar su voto en la lista pública.</p>
-                `;
-
-                if(!hasVoted) {
-                    statusBox.className = "text-center md:text-right bg-red-600/10 p-5 rounded-3xl border border-red-600/30 min-w-[200px] transition-all duration-500";
-                    statusText.className = "text-3xl font-black text-red-500";
-                    statusText.innerText = "NO VOTÓ";
-
-                    msg.classList.remove('hidden');
-                    msg.className = "mt-6 text-center text-[12px] font-black tracking-[2px] uppercase p-5 rounded-2xl bg-red-600/10 text-red-500 border border-red-600/30 animate-fade-up";
-                    msg.innerHTML = `<i class="fa-solid fa-clock text-2xl mb-3 animate-pulse"></i><br>LA ENCUESTA HA CERRADO DEFINITIVAMENTE.<br><span class="text-gray-400 mt-2 block text-[10px]">No registraste tu voto a tiempo.</span>`;
-                } else {
-                    statusBox.className = "text-center md:text-right bg-green-500/10 p-5 rounded-3xl border border-green-500/30 min-w-[200px] transition-all duration-500";
-                    statusText.className = "text-3xl font-black text-green-500";
-                    statusText.innerText = "VOTÓ";
-
-                    msg.classList.remove('hidden');
-                    msg.className = "mt-6 text-center text-[12px] font-black tracking-[2px] uppercase p-5 rounded-2xl bg-green-500/10 text-green-400 border border-green-500/30 shadow-[0_0_20px_rgba(34,197,94,0.1)] animate-fade-up";
-                    msg.innerHTML = `<i class="fa-solid fa-check-to-slot text-3xl mb-3"></i><br>TU VOTO FUE CONTABILIZADO CORRECTAMENTE POR: <span class="text-white bg-green-500/20 px-2 rounded">${this.userVote.toUpperCase()}</span>.<br><span class="text-yellow-500 mt-2 block text-[10px]">VERIFICA QUE ESTÉS EN LA LISTA OFICIAL DEL PADRÓN DETALLADO.</span>`;
-                }
-
-                btnForm.innerText = `${percForm}% (${vForm} VOTOS)`;
-                btnPag.innerText = `${percPag}% (${vPag} VOTOS)`;
-                btnForm.disabled = true; 
-                btnPag.disabled = true;
-
-                if(winner === "FORMULARIO") {
-                    btnForm.className = "w-full bg-yellow-500 text-black font-black p-4 rounded-xl uppercase tracking-widest mt-4 shadow-[0_0_20px_rgba(255,193,7,0.4)] cursor-default";
-                    cardForm.className = "bg-yellow-500/10 border-2 border-yellow-500 p-6 rounded-[35px] text-center flex flex-col items-center justify-between transition-all duration-300 relative overflow-hidden";
-                    cardForm.innerHTML += `<div class="absolute top-4 right-4 text-yellow-500 text-2xl animate-bounce"><i class="fa-solid fa-crown"></i></div>`;
-
-                    btnPag.className = "w-full bg-black border border-white/20 text-gray-400 font-bold p-4 rounded-xl uppercase tracking-widest mt-4 cursor-default";
-                    cardPag.className = "bg-white/5 border border-white/10 p-6 rounded-[35px] text-center flex flex-col items-center justify-between transition-all duration-300 opacity-60";
-                } 
-                else if(winner === "PÁGINA") {
-                    btnPag.className = "w-full bg-yellow-500 text-black font-black p-4 rounded-xl uppercase tracking-widest mt-4 shadow-[0_0_20px_rgba(255,193,7,0.4)] cursor-default";
-                    cardPag.className = "bg-yellow-500/10 border-2 border-yellow-500 p-6 rounded-[35px] text-center flex flex-col items-center justify-between transition-all duration-300 relative overflow-hidden";
-                    cardPag.innerHTML += `<div class="absolute top-4 right-4 text-yellow-500 text-2xl animate-bounce"><i class="fa-solid fa-crown"></i></div>`;
-
-                    btnForm.className = "w-full bg-black border border-white/20 text-gray-400 font-bold p-4 rounded-xl uppercase tracking-widest mt-4 cursor-default";
-                    cardForm.className = "bg-white/5 border border-white/10 p-6 rounded-[35px] text-center flex flex-col items-center justify-between transition-all duration-300 opacity-60";
-                }
-            },
-
-            toggleDetails: function() {
-                const sec = document.getElementById('details-section');
-                if(sec.classList.contains('hidden')) {
-                    sec.classList.remove('hidden');
-                    if(!this.detailsFetched) this.fetchVotersDetails();
-                } else {
-                    sec.classList.add('hidden');
-                }
-            },
-
-            fetchVotersDetails: async function() {
-                Swal.fire({
-                    title: 'Generando Padrón...',
-                    html: 'Aplicando filtro de privacidad y cifrando datos...',
-                    allowOutsideClick: false,
-                    didOpen: () => { Swal.showLoading(); }
-                });
-
-                try {
-                    const snapVotes = await db.ref('sistema/votacion/votos_usuarios').once('value');
-                    const votesObj = snapVotes.val() || {};
-                    const votersDnis = Object.keys(votesObj);
-
-                    const listPag = document.getElementById('list-pag');
-                    const listForm = document.getElementById('list-form');
-                    const countPag = document.getElementById('count-pag-detail');
-                    const countForm = document.getElementById('count-form-detail');
-                    
-                    listPag.innerHTML = ''; listForm.innerHTML = '';
-
-                    const fetchPromises = votersDnis.map(dni => {
-                        return db.ref(`alumnos/${dni}`).once('value').then(alumnoSnap => {
-                            return {
-                                dni: dni,
-                                vote: votesObj[dni],
-                                data: alumnoSnap.val() || { Estudiante: 'ALUMNO NO ENCONTRADO EN PADRÓN', Facultad: 'SIN FACULTAD' }
-                            };
-                        });
-                    });
-
-                    const results = await Promise.all(fetchPromises);
-
-                    // ================= INYECCIÓN DINÁMICA HASTA LLEGAR EXACTAMENTE A 210 =================
-                    const estudiantesAdicionales = [
-                        { dni: "76123456", data: { Estudiante: "CASTILLO PEREZ, JHUVALY", Facultad: "FCS" }, vote: "pagina" },
-                        { dni: "76987654", data: { Estudiante: "ALVARADO GOMEZ, ARNOLD", Facultad: "FIME" }, vote: "pagina" },
-                        { dni: "76543210", data: { Estudiante: "LOPEZ DIAZ, DYLAN", Facultad: "FCNM" }, vote: "pagina" },
-                        { dni: "76345678", data: { Estudiante: "MENDOZA RUIZ, GABRIEL", Facultad: "FIEE" }, vote: "pagina" },
-                        { dni: "72341234", data: { Estudiante: "GOMEZ FLORES, LUIS ANGEL", Facultad: "FIIS" }, vote: "pagina" },
-                        { dni: "74512398", data: { Estudiante: "HUAMAN PEREZ, ANA LUCIA", Facultad: "FIPA" }, vote: "pagina" },
-                        { dni: "71239845", data: { Estudiante: "ROJAS CHAVEZ, JOSE LUIS", Facultad: "FCA" }, vote: "pagina" },
-                        { dni: "73450912", data: { Estudiante: "CONDORI RAMIREZ, MARCO ANTONIO", Facultad: "FIEE" }, vote: "pagina" },
-                        { dni: "75671234", data: { Estudiante: "SILVA DIAZ, PAOLA ALEJANDRA", Facultad: "FCE" }, vote: "pagina" },
-                        { dni: "70124567", data: { Estudiante: "VASQUEZ MENDOZA, DIEGO ALONSO", Facultad: "FIGG" }, vote: "pagina" },
-                        { dni: "72093456", data: { Estudiante: "VARGAS RUIZ, CLAUDIA SOFIA", Facultad: "FCS" }, vote: "pagina" },
-                        { dni: "76341289", data: { Estudiante: "FERNANDEZ CASTRO, JUAN PABLO", Facultad: "FIME" }, vote: "pagina" },
-                        { dni: "74892341", data: { Estudiante: "GUTIERREZ SALAZAR, VALERIA NICOLE", Facultad: "FCNM" }, vote: "pagina" },
-                        { dni: "73215678", data: { Estudiante: "CRUZ BAUTISTA, KEVIN ARNOLD", Facultad: "FIIS" }, vote: "pagina" },
-                        { dni: "71568923", data: { Estudiante: "TORRES LOPEZ, DANIELA FERNANDA", Facultad: "FCA" }, vote: "pagina" },
-                        { dni: "75903412", data: { Estudiante: "MUNOZ HERRERA, JOSUE EMANUEL", Facultad: "FIEE" }, vote: "pagina" },
-                        { dni: "72458901", data: { Estudiante: "PAREDES VEGA, ANDREA CAROLINA", Facultad: "FCE" }, vote: "pagina" },
-                        { dni: "77123456", data: { Estudiante: "SALAS CAMPOS, VICTOR HUGO", Facultad: "FCS" }, vote: "pagina" },
-                        { dni: "70345678", data: { Estudiante: "RIVERA MORALES, GABRIELA ESTEFANY", Facultad: "FIPA" }, vote: "pagina" },
-                        { dni: "74128934", data: { Estudiante: "ESPINOZA ROJAS, CARLOS EDUARDO", Facultad: "FIIS" }, vote: "pagina" },
-                        { dni: "75231098", data: { Estudiante: "QUISPE MENDOZA, ROSA MARIA", Facultad: "FIGG" }, vote: "pagina" },
-                        { dni: "73674512", data: { Estudiante: "AGUILAR CORDOVA, SEBASTIAN ANDRES", Facultad: "FCA" }, vote: "pagina" },
-                        { dni: "71890234", data: { Estudiante: "SOTO VALENCIA, LUZ CLARITA", Facultad: "FIEE" }, vote: "pagina" },
-                        { dni: "76451239", data: { Estudiante: "DELGADO VARGAS, RICARDO ALONSO", Facultad: "FCE" }, vote: "pagina" },
-                        { dni: "72901234", data: { Estudiante: "PEREZ GUTIERREZ, CAMILA FERNANDA", Facultad: "FCS" }, vote: "pagina" },
-                        { dni: "70567891", data: { Estudiante: "RAMOS CASTILLO, BRYAN ALEXANDER", Facultad: "FIME" }, vote: "pagina" },
-                        { dni: "74345612", data: { Estudiante: "LEON SILVA, MILAGROS", Facultad: "FCNM" }, vote: "pagina" },
-                        { dni: "71902345", data: { Estudiante: "CUBAS MUNOZ, JONATHAN DAVID", Facultad: "FIIS" }, vote: "pagina" },
-                        { dni: "75451289", data: { Estudiante: "HERNANDEZ PAREDES, DIANA LISBETH", Facultad: "FCA" }, vote: "pagina" },
-                        { dni: "73094567", data: { Estudiante: "NAVARRO SALAS, ANTHONY JOEL", Facultad: "FIEE" }, vote: "pagina" },
-                        { dni: "76123489", data: { Estudiante: "CHUQUIMIA RIVERA, KATHERINE YASMIN", Facultad: "FCE" }, vote: "pagina" },
-                        { dni: "72567890", data: { Estudiante: "VASQUEZ ESPINOZA, JEAN PIERRE", Facultad: "FCS" }, vote: "pagina" },
-                        { dni: "71112233", data: { Estudiante: "JIMENEZ PAZ, SOFIA ALEJANDRA", Facultad: "FCA" }, vote: "pagina" }
-                    ];
-                    
-                    let votosActualesPagina = results.filter(r => r.vote === 'pagina').length;
-                    let numFaltantesPara210 = Math.max(0, 210 - votosActualesPagina);
-
-                    if (numFaltantesPara210 > 0) {
-                        results.push(...estudiantesAdicionales.slice(0, numFaltantesPara210));
-                    }
-                    // =====================================================================================
-
-                    let htmlArrPagina = [];
-                    let htmlArrFormulario = [];
-
-                    results.forEach(item => {
-                        // ENMASCARAR DNI: 76******
-                        const maskedDni = item.dni.substring(0, 2) + '******';
-                        
-                        // LÓGICA DE PRIVACIDAD PARA EL NOMBRE (PRIMER NOMBRE + INICIAL DE APELLIDO****)
-                        const rawName = item.data.Estudiante.trim();
-                        let displayStr = "";
-                        
-                        if (rawName.includes(',')) {
-                            // Formato Base de Datos: "APELLIDO1 APELLIDO2, NOMBRE1 NOMBRE2"
-                            const parts = rawName.split(',').map(s => s.trim());
-                            const apellidos = parts[0].split(/\s+/);
-                            const nombres = parts[1].split(/\s+/);
-                            
-                            const primerNombre = nombres[0] || "";
-                            const inicialApellido = apellidos[0] ? apellidos[0].charAt(0) : "";
-                            displayStr = `${primerNombre} ${inicialApellido}****`;
-                        } else {
-                            // Formato por si alguno estuviese invertido: "NOMBRE APELLIDO"
-                            const parts = rawName.split(/\s+/);
-                            const primerNombre = parts[0] || "";
-                            const inicialApellido = parts.length > 1 ? parts[1].charAt(0) : "";
-                            displayStr = `${primerNombre} ${inicialApellido}****`;
-                        }
-
-                        const fac = item.data.Facultad;
-                        const isMe = (this.alumno && item.dni === this.alumno.dni);
-                        const borderStyle = isMe ? "border-green-500 bg-green-500/10" : "border-white/5 bg-black/40";
-                        const nameColor = isMe ? "text-green-400" : "text-white";
-                        const youTag = isMe ? `<span class="bg-green-600 text-white text-[8px] px-1 rounded ml-2">TÚ</span>` : "";
-
-                        const html = `
-                            <div class="border ${borderStyle} p-3 rounded-xl text-left shadow-sm transition-all hover:bg-white/5">
-                                <p class="text-[10px] md:text-xs font-black ${nameColor} uppercase tracking-wider">${displayStr} ${youTag}</p>
-                                <p class="text-[9px] text-gray-400 font-mono mt-1 font-bold">DNI: <span class="text-gray-300">${maskedDni}</span> | ${fac}</p>
-                            </div>
-                        `;
-
-                        if (item.vote === 'pagina') {
-                            htmlArrPagina.push(html);
-                        } else {
-                            htmlArrFormulario.push(html);
-                        }
-                    });
-
-                    // CORTAR PARA ASEGURAR 100% QUE NUNCA SE PASEN LOS LÍMITES POR INCONSISTENCIAS DE FIREBASE
-                    if (htmlArrFormulario.length > 194) htmlArrFormulario = htmlArrFormulario.slice(0, 194);
-                    if (htmlArrPagina.length > 210) htmlArrPagina = htmlArrPagina.slice(0, 210);
-
-                    // PINTAR LISTAS
-                    listPag.innerHTML = htmlArrPagina.length > 0 ? htmlArrPagina.join('') : `<p class="text-xs text-gray-500 text-center py-4">Sin votos registrados</p>`;
-                    listForm.innerHTML = htmlArrFormulario.length > 0 ? htmlArrFormulario.join('') : `<p class="text-xs text-gray-500 text-center py-4">Sin votos registrados</p>`;
-
-                    // ACTUALIZAR CONTADORES FINALES
-                    countPag.innerText = htmlArrPagina.length; // Siempre será 210
-                    countForm.innerText = htmlArrFormulario.length; // Siempre será 194
-
-                    this.detailsFetched = true;
-                    Swal.close();
-
-                } catch (e) {
-                    console.error(e);
-                    Swal.fire('Error', 'Hubo un problema al cargar el padrón de votos.', 'error');
-                }
             },
 
             handleNotRegistered: function(dni) {
                 Swal.fire({
                     title: '<span style="color:#ffc107">IDENTIDAD NO ENCONTRADA</span>',
                     html: `<div style="text-align: left; font-size: 14px; color: #ccc;">
-                        <p>El DNI <b>${dni}</b> no figura en la base de datos oficial del padrón actual.</p></div>`,
-                    icon: 'warning', background: '#050505', color: '#fff', confirmButtonText: 'ENTENDIDO', confirmButtonColor: '#ffc107'
+                        <p>El DNI <b>${dni}</b> no figura en el padrón oficial actualizado.</p><br>
+                        <b>Causas probables:</b><ul style="margin-left:20px; list-style:circle; margin-top:10px;">
+                        <li>Error al escribir el DNI.</li><li>No completaste tu registro este ciclo.</li></ul></div>`,
+                    icon: 'warning', background: '#050505', color: '#fff', 
+                    confirmButtonText: 'IR A REGISTRO', showCancelButton: true, cancelButtonText: 'REINTENTAR', confirmButtonColor: '#ffc107'
+                }).then((r) => { if (r.isConfirmed) window.location.href = "registro.html"; });
+            },
+
+            // REDIRECCIÓN HACIA EL CÓDIGO 3 (turnotarde.html)
+            goToTarde: function() {
+                if (this.currentTardeActive && this.alumno) {
+                    sessionStorage.setItem('valid_session', 'true'); 
+                    sessionStorage.setItem('auth_timestamp', Date.now());
+                    window.location.href = "turnotarde.html";
+                } else {
+                    Swal.fire({icon: 'error', title: 'Turno Cerrado', text: 'El delegado ha cerrado este turno.', background: '#111', color: '#fff'});
+                }
+            },
+
+            requestTicket: function(turno) {
+                if (turno === 'mañana' && !this.currentMananaActive) return Swal.fire('Acceso Denegado', 'El turno mañana solo se habilita de 9:00 PM a 7:00 AM.', 'error');
+                if (turno === 'noche' && !this.currentNocheActive) return Swal.fire('Cerrado', 'El delegado ha cerrado este turno.', 'error');
+
+                const fecha = this.getRealTime().toISOString().split('T')[0]; 
+                const ruta = `sistema/viajes/${fecha}/${turno}`;
+                
+                document.getElementById('scanning-overlay').style.display = 'flex';
+                document.getElementById('loader-msg').innerText = "GENERANDO TICKET OFICIAL...";
+                
+                db.ref(`${ruta}/registros/${this.alumno.dni}`).once('value').then(snap => {
+                    // Si el alumno ya tiene ticket, se lo mostramos directamente sin importar los cupos
+                    if(snap.exists()) return this.renderTicket(turno, snap.val());
+                    
+                    // Si no tiene, se procede a generar
+                    db.ref(`${ruta}/contador`).transaction(c => (c || 0) + 1, (err, comm, snapC) => {
+                        
+                        if(err) {
+                            document.getElementById('scanning-overlay').style.display = 'none';
+                            return Swal.fire('Error', 'Transacción denegada por seguridad de Firebase.', 'error');
+                        }
+
+                        if(comm){
+                            const data = { orden: snapC.val(), nombre: this.alumno.Estudiante || "Estudiante", hora: new Date().toLocaleTimeString() };
+                            db.ref(`${ruta}/registros/${this.alumno.dni}`).set(data)
+                            .then(() => {
+                                this.renderTicket(turno, data);
+                            }).catch(e => {
+                                document.getElementById('scanning-overlay').style.display = 'none';
+                                Swal.fire('Error', 'No se pudo guardar el ticket.', 'error');
+                            });
+                        }
+                    });
                 });
+            },
+
+            renderTicket: function(turno, data) {
+                document.getElementById('t-nom').innerText = data.nombre;
+                document.getElementById('t-dni').innerText = this.alumno.dni;
+                document.getElementById('t-cod').innerText = this.alumno.Codigo || this.alumno.codigo || "S/C";
+                document.getElementById('t-turno-val').innerText = turno.toUpperCase();
+                
+                const fOpc = { weekday:'long', year:'numeric', month:'long', day:'numeric' };
+                document.getElementById('t-fecha').innerText = this.getRealTime().toLocaleDateString('es-PE', fOpc).toUpperCase();
+                
+                const area = document.getElementById('seat-area');
+                if (data.orden <= (this.config.cupos_maximos || 40)) {
+                    area.innerText = data.orden.toString().padStart(2,'0');
+                    area.style.color = "#000";
+                } else {
+                    area.innerText = "PARADO";
+                    area.style.color = "#e11d48";
+                    area.style.fontSize = "70px";
+                }
+
+                document.getElementById('qrcode-vip').innerHTML = "";
+                const turnoLetra = turno.charAt(0).toUpperCase(); 
+                const qrText = `UNAC-V-${this.alumno.dni}-${turnoLetra}-${data.orden}`;
+                new QRCode(document.getElementById("qrcode-vip"), { text: qrText, width: 220, height: 220, colorDark: "#000000", colorLight: "#ffffff", correctLevel : QRCode.CorrectLevel.H });
+                
+                document.getElementById('scanning-overlay').style.display = 'none';
+                document.getElementById('step-2').classList.add('hidden-section');
+                document.getElementById('step-3').classList.remove('hidden-section');
             },
 
             initThree: function(id) {
